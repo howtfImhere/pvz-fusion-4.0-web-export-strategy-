@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PvZ Fusion 4.0</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #2b2b2b; color: #fff; }
+        .container { max-width: 1400px; margin: auto; background: #3c3c3c; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        
+        .controls { margin-bottom: 15px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: #333; padding: 12px; border-radius: 6px; border: 1px solid #555; }
+        .controls input[type="text"] { padding: 8px; font-size: 16px; width: 80px; font-weight: bold; text-align: center; border: 2px solid #555; border-radius: 4px; background: #222; color: #0f0; }
+        .controls button { padding: 8px 15px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px; font-weight: bold; }
+        .controls button:hover { background-color: #45a049; }
+        .controls button.clear { background-color: #f44336; }
+        .controls button.clear:hover { background-color: #d32f2f; }
+        .controls select { padding: 8px; background: #222; color: #fff; border: 1px solid #555; border-radius: 4px; outline: none; font-weight: bold; }
+
+        .checkbox-container { display: flex; align-items: center; gap: 6px; background: #222; padding: 6px 12px; border-radius: 4px; border: 1px solid #555; cursor: pointer; user-select: none; font-size: 14px; font-weight: bold; color: #ffeb3b; }
+        .checkbox-container input { cursor: pointer; width: 16px; height: 16px; }
+
+        .tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+        .tab-btn { padding: 6px 14px; background: #333; color: #ccc; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .tab-btn.active { background: #2196F3; color: white; border-color: #64b5f6; }
+        .tab-btn:hover:not(.active) { background: #444; color: #fff; }
+
+        .main-layout { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px; }
+        
+        .left-panel { flex: 0 0 750px; }
+        .grid { display: grid; grid-template-columns: repeat(10, 75px); grid-template-rows: repeat(6, 75px); width: 100%; height: 100%; }
+        
+        .cell { 
+            width: 75px; height: 75px; 
+            border: 1px solid #444;
+            box-sizing: border-box; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; user-select: none; 
+            position: relative; 
+            background-color: #2a2a2a; 
+        }
+        .cell:hover { background: #444; border-color: #00ff00; }
+        
+        .cell img { position: absolute; pointer-events: none; object-fit: contain; }
+        
+        .cell img.base-cell { width: 75px; height: 75px; bottom: 0px; left: 50%; transform: translateX(-50%); z-index: 1; }
+        .cell img.armor-cell { width: 85px; height: auto; bottom: 5px; left: 50%; transform: translateX(-50%); z-index: 20; }
+        .cell img.flying-cell { width: 70px; height: auto; bottom: 35px; left: 50%; transform: translateX(-50%); z-index: 30; }
+        .cell img.normal-cell { width: 75px; height: 75px; bottom: 0px; left: 50%; transform: translateX(-50%); z-index: 5; }
+        .cell img.two-cell { width: 75px; height: 75px; bottom: 0px; left: 0; transform: none; z-index: 10; }
+
+        .cell img.puff-1 { width: 45px; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 10; } 
+        .cell img.puff-2 { width: 45px; bottom: 2px; left: -2px; transform: none; z-index: 11; } 
+        .cell img.puff-3 { width: 45px; bottom: 2px; right: -2px; left: auto; transform: none; z-index: 12; } 
+
+        .cell .id-text { position: absolute; bottom: 2px; right: 2px; font-size: 11px; color: #00ff00; text-shadow: 1px 1px 2px black; z-index: 99; pointer-events: none; font-family: monospace; }
+
+        .right-panel { flex: 1; background: #3c3c3c; padding: 15px; border-radius: 8px; border: 1px solid #555; }
+        
+        .seed-bank { display: grid; grid-template-columns: repeat(9, 45px); grid-template-rows: repeat(7, 65px); gap: 6px; justify-content: center; min-height: 490px; }
+        .seed-card { width: 50px; height: 65px; background: #555; border: 2px solid #333; border-radius: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; box-sizing: border-box; }
+        .seed-card:hover { border-color: #ffeb3b; background: #666; transform: scale(1.05); }
+        .seed-card.selected { border-color: #00ff00; box-shadow: 0 0 10px #00ff00; background: #444; }
+        
+        .seed-card img { width: 34px; height: 34px; object-fit: contain; }
+        .seed-card .seed-id { font-size: 10px; font-weight: bold; margin-top: 4px; background: rgba(0,0,0,0.6); width: 100%; text-align: center; color: white; }
+
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; background: #222; padding: 8px 12px; border-radius: 5px; }
+        .pagination button { padding: 5px 12px; font-size: 13px; background: #2196F3; border: none; color: white; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .pagination button:hover { background: #0b7dda; }
+        .pagination button:disabled { background: #555; color: #888; cursor: not-allowed; }
+
+        textarea { width: 100%; height: 180px; font-family: monospace; padding: 10px; box-sizing: border-box; border: 1px solid #555; border-radius: 4px; background: #222; color: #0f0; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <label for="plantId">ID:</label>
+        <input type="text" id="plantId" value="1" oninput="handleManualInput()">
+
+        <select id="shovelModeSelect">
+            <option value="all">Xóa sạch ô</option>
+            <option value="normal">Xóa cây thường</option>
+            <option value="armor">Xóa vỏ bí</option>
+            <option value="base">Xóa chậu / lá bèo </option>
+            <option value="flying">Xóa cây bay</option>
+        </select>
+        <button class="clear" onclick="selectEraseMode()">Xẻng</button>
+
+        <label class="checkbox-container">
+            <input type="checkbox" id="chkColumnMode"> Trồng / Xẻng 1 cột
+        </label>
+
+        <button class="clear" style="margin-left: auto;" onclick="clearGrid()">Clear sân</button>
+    </div>
+
+    <div class="main-layout">
+        <div class="left-panel">
+            <div id="grid" class="grid"></div>
+            <div class="controls" style="margin-top: 15px;">
+                <button onclick="exportData()">1. Xuất Code</button>
+                <button onclick="downloadJson()">2. Xuất file</button>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <!-- THANH TAB PHÂN LOẠI CÂY -->
+            <div class="tabs" id="tabContainer"></div>
+            <div class="seed-bank" id="seedBank"></div>
+            <div class="pagination">
+                <button id="btnPrev" onclick="prevPage()">◀ Trước</button>
+                <span id="pageInfo" style="font-weight: bold; font-size: 13px;">Trang 1</span>
+                <button id="btnNext" onclick="nextPage()">Sau ▶</button>
+            </div>
+        </div>
+    </div>
+
+    <textarea id="output" placeholder="Dữ liệu JSON đội hình sẽ xuất ra ở đây..."></textarea>
+
+<script>
+    const rows = 6;
+    const cols = 10;
+    let gridData = Array.from({ length: rows }, () => Array.from({ length: cols }, () => []));
+    let gridElements = Array.from({ length: rows }, () => Array.from({ length: cols }, () => null));
+
+    const twoCellPlants = ["310","915","927","946","951","953","960","964","966","997","1120","1122","1123","1132","1161","1174","1175","1247","1254","1266","1300","1342"];
+    const armorPlants = ["24","911","922","935","967","1087","1088","1089","1091","1092","1097","1098","1099","1110","1164","1169","1190","1200","1202","1205","1288","1289","1299","1318","1323","1324","1327","1334","1349","1350","1352","1371","1407","1413","1435","1436","1444","1464"];
+    const basePlants = ["27","226","936","950","978","1112","1114","1125","1130","1133","1136","1137","1184","1195","1243","1287","1311","1357","1372","1380","1404","1405","1437","1442","1454","1460","1473","1474","5005"];
+    const flyingPlants = ["35","235","241","912","939","962","1082","1204","1216","1223","1224","1225","1226","1234","1244","1255","1265","1273","1359","1360","1361","1374","1426","1471","1480","1481","1482","1483","5000","5004"];
+    const puffShrooms = ["6","230","231","232","358","359","908","929","952","987","988","990","1018","1019","1021","1022","1031","1035","1036","1044","1065","1152","1153","1170","1183","1203","1280","1281","1301","1370","1384","1446","1451","1459"];
+
+    const plantCategories = {
+        "all": { name: "All" },
+        "flowerpot": { name: "Chậu", ids: ["27","226","936","950","978","1112","1114","1125","1130","1133","1136","1137","1184","1195","1243","1287","1311","1357","1372","1380","1404","1405","1437","1442","1454","1460","1473","1474","5005"] },
+        "pumpkin": { name: "Pumpkin", ids: ["24","911","922","935","967","1087","1088","1089","1091","1092","1097","1098","1099","1110","1164","1169","1190","1200","1202","1205","1288","1289","1299","1318","1323","1324","1327","1334","1349","1350","1352","1371","1407","1413","1435","1436","1444","1464"] },
+        "flying": { name: "Cây bay", ids: ["35","235","241","912","939","962","1082","1204","1216","1223","1224","1225","1226","1234","1244","1255","1265","1273","1359","1360","1361","1374","1426","1471","1480","1481","1482","1483","5000","5004"] },
+        "travelplants": { name: "Cây travel", ids: ["300","301","302","303","304","305","306","307","308","309","310","311","900","901","902","903","904","905","906","907","908","909","910","911","912","913","914","915","916","917","918","919","920","921","922","923","924","925","926","927","928","929","930","931","932","933","934","935","936","937","938","939","940","941","942","943","944","945","946","947","948","949","950","951","952","953","954","955","956","957","958","959","960","961","962","963","964","965","966","967","968","969","970","971","972","973","974","975","976","977","978","979","980","981","982","983","984","985","986","987","988","989","990","991","992","993","994","995","996","997","998","999","1109","1165","1167","1168","1271","1272","1290","1292","1329","1331","1423","1424","1429","1432","1445","1448","1471","1478","5000","5001","5002","5003","5004","5005"] }
+    };
+
+    const plantImages = {
+        "0" : "https://patchwiki.biligame.com/images/pvzrh/8/84/gpbqmpqepniq44rfwfdwyi0scdk6nit.png",
+        "1" : "https://patchwiki.biligame.com/images/pvzrh/6/6d/tmrh7o924x3yzl1i4lqixi0z1yndptt.png",
+        "2" : "https://patchwiki.biligame.com/images/pvzrh/a/a4/onppyg0udixt8tq1g35qmg4yjj279ei.png",
+        "3" : "https://patchwiki.biligame.com/images/pvzrh/f/f5/lklzra292ylozr5df77hi2yl0blbvou.png",
+        "4" : "https://patchwiki.biligame.com/images/pvzrh/b/b6/2j1nefhkbwjk0sq8ip0kkrg13r2dsf8.png",
+        "5" : "https://patchwiki.biligame.com/images/pvzrh/a/ab/mi4saie1a51rigc706emkv3jv2wy4vm.png",
+        "6" : "https://patchwiki.biligame.com/images/pvzrh/4/40/15dmu7awuj54y1rtai4eppj53u8wb06.png",
+        "7" : "https://patchwiki.biligame.com/images/pvzrh/0/06/izvaay91ytk293k8fg60hb8302w4cpa.png",
+        "8" : "https://patchwiki.biligame.com/images/pvzrh/d/d8/0kb4wahs56ixrk2ojvo8wsucnl1ocdh.png",
+        "9" : "https://patchwiki.biligame.com/images/pvzrh/a/a9/qt5x2b7d5uxagxcnwfls1svkybsmwfb.png",
+        "10" : "https://patchwiki.biligame.com/images/pvzrh/d/d6/kxce3svav4lubmr20ubwdy9prj1x4ei.png",
+        "11" : "https://patchwiki.biligame.com/images/pvzrh/f/fa/9mkpgkguvv6ms7k5zzki1sngzo7ptfj.png",
+        "12" : "https://patchwiki.biligame.com/images/pvzrh/8/87/snksjzqog3djgo0f61dbn485c1vgf3q.png",
+        "13" : "https://patchwiki.biligame.com/images/pvzrh/6/6c/oinnwzdo7l7nd13ju4kjn8k0mz8gumv.png",
+        "14" : "https://patchwiki.biligame.com/images/pvzrh/f/f8/43utan2icyn6htntl0wp7hqed79199s.png",
+        "15" : "https://patchwiki.biligame.com/images/pvzrh/a/af/rwsz4f5r1n775f315bji09jbb0mk9p1.png",
+        "16" : "https://patchwiki.biligame.com/images/pvzrh/4/4f/8ac6tuwnzeosumtla395rpo3ypedbfh.png",
+        "17" : "https://patchwiki.biligame.com/images/pvzrh/1/1c/oxw1cppjggrsoto5sxyc9dnwj6wb1e2.png",
+        "18" : "https://patchwiki.biligame.com/images/pvzrh/4/4b/gtlxhh5socj77w49oyt7vcpr6g5blia.png",
+        "19" : "https://patchwiki.biligame.com/images/pvzrh/f/f8/phzzwh4ugsbyvk1ye6y0ad09xf7g0tt.png",
+        "20" : "https://patchwiki.biligame.com/images/pvzrh/2/20/8z35ozvtqhwy4yfd3vyspg0uvgk8x0c.png",
+        "21" : "https://patchwiki.biligame.com/images/pvzrh/2/22/nkx71b7ol7n4612jtzu6ii7hrb10c31.png",
+        "22" : "https://patchwiki.biligame.com/images/pvzrh/9/9d/3bvt90l5l3vc4sfmtaa55loyadwrg39.png",
+        "23" : "https://patchwiki.biligame.com/images/pvzrh/a/ac/faak8e67gts6yp9r3ffnn5hdvj86rb4.png",
+        "24" : "https://patchwiki.biligame.com/images/pvzrh/8/8b/ol3q8ayyo3akredh022watk3giflsix.png",
+        "25" : "https://patchwiki.biligame.com/images/pvzrh/3/33/6zfsklgie1n1wlhisoh96jrxxm6lc9e.png",
+        "26" : "https://patchwiki.biligame.com/images/pvzrh/c/c2/pidcbwrz00hszau89p4gymxicjqwo8s.png",
+        "27" : "https://patchwiki.biligame.com/images/pvzrh/c/c2/dz4p8uqjvron2xffukpcerqphly8kjz.png",
+        "28" : "https://patchwiki.biligame.com/images/pvzrh/3/3e/a1qcikntx8b21hgm5i3wc46wiqim228.png",
+        "29" : "https://patchwiki.biligame.com/images/pvzrh/8/83/7teybyr0mjexmb98eobkrj712tyamef.png",
+        "30" : "https://patchwiki.biligame.com/images/pvzrh/d/d5/kgnknf031s3t2vk7vsy3x1h5xaw9yu7.png",
+        "31" : "https://patchwiki.biligame.com/images/pvzrh/d/dc/ecm0pitdcpec6bdk39gx2n3mfnmrycl.png",
+        "32" : "https://patchwiki.biligame.com/images/pvzrh/a/a9/fb6p6ff87cou9zcrji68duhruyfqo0u.png",
+        "33" : "https://patchwiki.biligame.com/images/pvzrh/8/8c/k9l7tfbs72wxb30v5neew6q6daqwcev.png",
+        "34" : "https://patchwiki.biligame.com/images/pvzrh/1/19/8rfftlm7yq5jidu48x9t1f03lbq1ype.png",
+        "35" : "https://patchwiki.biligame.com/images/pvzrh/e/eb/n18bhhjc9omohb3n53tdbthqkbeyn7z.png",
+        "36" : "https://patchwiki.biligame.com/images/pvzrh/d/da/r50bq3f9lnvovf4ltq3x3wd5lry3fh0.png",
+        "37" : "https://patchwiki.biligame.com/images/pvzrh/3/3d/mi85647p3meamp2hmpnhs8gskf80hr6.png",
+        "38" : "https://patchwiki.biligame.com/images/pvzrh/6/6d/kxmyg3bbugxy01koz7aegp09d15dfxd.png",
+        "39" : "https://patchwiki.biligame.com/images/pvzrh/f/f4/ntcwj744cml2z59b0caq8sk09yxijy5.png",
+        "40" : "https://patchwiki.biligame.com/images/pvzrh/5/53/gsns6i75l1syq5n1pk4x8zl6qr3izqw.png",
+        "41" : "https://patchwiki.biligame.com/images/pvzrh/5/56/okynxgv6xdqt8xfvsdas1hhsq9bed8u.png",
+        "42" : "https://patchwiki.biligame.com/images/pvzrh/c/c4/94tp93ss3dugv5gsclxrx10lvhyg7ed.png",
+        "43" : "https://patchwiki.biligame.com/images/pvzrh/0/0e/3n2dnuurz6n5znc30sokr09cphdfzox.png",
+        "44" : "https://patchwiki.biligame.com/images/pvzrh/4/47/lwfjmplfy8zjif2ehvhdtxrpx0fta2f.png",
+        "211" : "https://patchwiki.biligame.com/images/pvzrh/2/24/0pr1j04yohqyg7ptstz03uqf8vbiwze.png",
+        "212" : "https://patchwiki.biligame.com/images/pvzrh/0/00/9pl9gwg13pk63ad9kvz4u4gcuzdxyog.png",
+        "213" : "https://patchwiki.biligame.com/images/pvzrh/5/50/sfpaqfjz6hbez1c7l5xe8nnm8wks1xl.png",
+        "214" : "https://patchwiki.biligame.com/images/pvzrh/a/a0/88mewkqhqz1fgdibxg8l4ie5ardj8l5.png",
+        "215" : "https://patchwiki.biligame.com/images/pvzrh/6/6e/mpul501ek06ap1ljivm8jkj27e6refa.png",
+        "216" : "https://patchwiki.biligame.com/images/pvzrh/4/4e/e9a67wm2kk641iexduu3ezg3z5gzcsd.png",
+        "217" : "https://patchwiki.biligame.com/images/pvzrh/c/c7/k5b8xun5pohum0z0h11lbn6qp4jf3d9.png",
+        "218" : "https://patchwiki.biligame.com/images/pvzrh/b/b1/9g80020ze7uksm8itxyds4gyq3338uf.png",
+        "219" : "https://patchwiki.biligame.com/images/pvzrh/f/f4/g5wh69knqlaw3eikr0gt0cfjjvl4ee3.png",
+        "220" : "https://patchwiki.biligame.com/images/pvzrh/7/7f/a5eb1ca8amixp8jjd12vwm4v781zba3.png",
+        "221" : "https://patchwiki.biligame.com/images/pvzrh/3/3b/ne0bx721p9me6ej9nnoxqvnjddoqjb6.png",
+        "222" : "https://patchwiki.biligame.com/images/pvzrh/2/27/k3mf99mbvxjww92npn724bef2oqrz4i.png",
+        "223" : "https://patchwiki.biligame.com/images/pvzrh/c/c4/kyppv3wjib6q9dbxqtn480c208uhy89.png",
+        "224" : "https://patchwiki.biligame.com/images/pvzrh/7/7b/8piy6sjmgj6hvt04huf625l3cyn3qrv.png",
+        "225" : "https://patchwiki.biligame.com/images/pvzrh/a/ab/o76zwg8akchbzlcrkitmxbcjsovbdyi.png",
+        "226" : "https://patchwiki.biligame.com/images/pvzrh/8/8e/s4zprsigenpnrxrtegnqjxtf6sked7e.png",
+        "227" : "https://patchwiki.biligame.com/images/pvzrh/e/e5/s2iqodspyvyqqn51l7jr7f9wzrh0uwi.png",
+        "228" : "https://patchwiki.biligame.com/images/pvzrh/4/4a/6ozan6mst47m8z58kklukpkhogcsv31.png",
+        "229" : "https://patchwiki.biligame.com/images/pvzrh/d/d4/jrbwq0vqjb0yu4dn790cu8d0tdwj2q5.png",
+        "230" : "https://patchwiki.biligame.com/images/pvzrh/e/e1/gzehz71ip5j0zm0uikbrtfccj4b5obu.png",
+        "231" : "https://patchwiki.biligame.com/images/pvzrh/1/16/8b8oxj2mq4vlch7o5xw3ql30tzni291.png",
+        "232" : "https://patchwiki.biligame.com/images/pvzrh/2/28/27j64ez2dkv4jk25nzb7yodjmpgsid0.png",
+        "233" : "https://patchwiki.biligame.com/images/pvzrh/e/e7/05171zqcg6kft96wmk3k9sl8506ccvi.png",
+        "234" : "https://patchwiki.biligame.com/images/pvzrh/b/b0/c19a09o86jq8e2o5gzpf9xk0rt9a80l.png",
+        "235" : "https://patchwiki.biligame.com/images/pvzrh/d/d6/nf0lcotb2lvflsaylg76d5t2pkyrejg.png",
+        "236" : "https://patchwiki.biligame.com/images/pvzrh/1/1e/5ia0doqv6imvf90uv02x5i4v3dep754.png",
+        "237" : "https://patchwiki.biligame.com/images/pvzrh/9/99/3hy36atq5nn65g6nbqvcpkbq0jsqskf.png",
+        "238" : "https://patchwiki.biligame.com/images/pvzrh/2/2d/92g6wwwx1wwxisnv0ox5y9add6grwnv.png",
+        "239" : "https://patchwiki.biligame.com/images/pvzrh/7/76/k23hoy24e6npbflaquocg986v2jsj9c.png",
+        "240" : "https://patchwiki.biligame.com/images/pvzrh/c/cf/t15urwq7rdpzu7rgm2649017qwqhz7o.png",
+        "241" : "https://patchwiki.biligame.com/images/pvzrh/6/6d/nblzygygdau2np8osba741ftenvqub2.png",
+        "242" : "https://patchwiki.biligame.com/images/pvzrh/f/fa/f96s0dnylfxa7oxi7u66l4dbesby1jq.png",
+        "243" : "https://patchwiki.biligame.com/images/pvzrh/e/ee/dem96cxbcqt4v5mo46ppgqtntxnjrws.png",
+        "244" : "https://patchwiki.biligame.com/images/pvzrh/7/79/0c4n9sm5trhr8qx1r8g8fytw6m40ajm.png",
+        "245" : "https://patchwiki.biligame.com/images/pvzrh/d/d8/7dmepmz80yf3ekqg4st8yrikli0aggh.png",
+        "246" : "https://patchwiki.biligame.com/images/pvzrh/5/59/1lco3lhnkcc76sd91l4t2bv8xtf1qau.png",
+        "249" : "https://patchwiki.biligame.com/images/pvzrh/4/48/idq1389vf7fbdm9rufugt6ulw56scyl.png",
+        "250" : "https://patchwiki.biligame.com/images/pvzrh/4/47/ncfw48jilv8vp32pdxv1yjwvpxmg9mg.png",
+        "251" : "https://patchwiki.biligame.com/images/pvzrh/7/74/46hgpfty3l1zg5cqr9tjgpav36nyo5f.png",
+        "252" : "https://patchwiki.biligame.com/images/pvzrh/5/55/m1xvivq5ewd73l5y1kv37j5dvxrp7p4.png",
+        "253" : "https://patchwiki.biligame.com/images/pvzrh/a/a7/qm4kbi8wz46tpe8ij6bvtjd06rpufg3.png",
+        "254" : "https://patchwiki.biligame.com/images/pvzrh/b/bb/9ijbhtl1emg48qqc9ybvzbd9jxc9a6w.png",
+        "255" : "https://patchwiki.biligame.com/images/pvzrh/5/56/lklzra292ylozr5df77hi2yl0blbvou.png",
+        "256" : "https://patchwiki.biligame.com/images/pvzrh/e/eb/4o8c54r48jod7pk5h30crvi90hxg7sw.png",
+        "300" : "https://patchwiki.biligame.com/images/pvzrh/9/91/js66nenwoavrxa3dgck6xsisc3o3td1.png",
+        "301" : "https://patchwiki.biligame.com/images/pvzrh/e/ed/p2sznpnjxtlqjy016cses8kodjkhil9.png",
+        "302" : "https://patchwiki.biligame.com/images/pvzrh/d/df/6chogykf77s2hzoermzg0juzbbjzj9b.png",
+        "303" : "https://patchwiki.biligame.com/images/pvzrh/5/51/ej5mpwm5zi6jxfjoj6fgx0jtgjsenmh.png",
+        "304" : "https://patchwiki.biligame.com/images/pvzrh/d/d2/l2icg099fu3jt6b1fi0v3djucvb99dn.png",
+        "305" : "https://patchwiki.biligame.com/images/pvzrh/e/e2/3kl630h3n5foemyk81e2osxs3cyukt6.png",
+        "306" : "https://patchwiki.biligame.com/images/pvzrh/f/f5/ssvhs79dwq8neie3trm7afxe0h65et8.png",
+        "307" : "https://patchwiki.biligame.com/images/pvzrh/6/67/8270273fx1ad00gym93x9i6dcis91gy.png",
+        "308" : "https://patchwiki.biligame.com/images/pvzrh/a/af/08lkhuyc04m8o3jp9rhmne7gqngvpa6.png",
+        "309" : "https://patchwiki.biligame.com/images/pvzrh/8/8d/lnwh81nd8rzxca0n5il6q9x3beq1zoc.png",
+        "310" : "https://patchwiki.biligame.com/images/pvzrh/5/5a/41jcukrpqs582k2r97kg4xeh0tc5cl6.png",
+        "311" : "https://patchwiki.biligame.com/images/pvzrh/d/d0/iwu4s66lluil7madbwgf5bmglpvlca6.png",
+        "350" : "https://patchwiki.biligame.com/images/pvzrh/4/43/9xqxxo3tjlpym0nbsia1h7z8fx6orl9.png",
+        "351" : "https://patchwiki.biligame.com/images/pvzrh/2/20/2444torkgp8fohd8uta0o5yir0stean.png",
+        "352" : "https://patchwiki.biligame.com/images/pvzrh/7/70/ntfizddvr6sm1ierob5tag9lqp748uq.png",
+        "353" : "https://patchwiki.biligame.com/images/pvzrh/2/2b/celfw3yq85r5a0jcz5a8jxxnseyq8y7.png",
+        "354" : "https://patchwiki.biligame.com/images/pvzrh/6/61/a02il3q4w6ofh0mw327i12bxx8n33yb.png",
+        "355" : "https://patchwiki.biligame.com/images/pvzrh/d/db/oq4kx96ywb76ovl7eewlmh4tpscuqzh.png",
+        "356" : "https://patchwiki.biligame.com/images/pvzrh/e/e9/l49h8fadhj2afu4psawxvh8zc8ayffc.png",
+        "357" : "https://patchwiki.biligame.com/images/pvzrh/1/19/8rfftlm7yq5jidu48x9t1f03lbq1ype.png",
+        "358" : "https://patchwiki.biligame.com/images/pvzrh/6/69/l264lvgz7gmkisxcb13ykipo2tx97o2.png",
+        "359" : "https://patchwiki.biligame.com/images/pvzrh/e/e0/9xegpguibeou7hcb4gqrw286c1u2lxn.png",
+        "360" : "https://patchwiki.biligame.com/images/pvzrh/7/73/2evvka4gww66vp3mcph0558t2p572q8.png",
+        "361" : "https://patchwiki.biligame.com/images/pvzrh/7/76/k23hoy24e6npbflaquocg986v2jsj9c.png",
+        "362" : "https://patchwiki.biligame.com/images/pvzrh/7/76/6kq5r3inzgx86t8fd1yk5umtrqf5tl3.png",
+        "363" : "https://patchwiki.biligame.com/images/pvzrh/e/e0/pxod0h5sozy2fioc36rploqzuttlokn.png",
+        "364" : "https://patchwiki.biligame.com/images/pvzrh/a/a3/nfzahqc4iqziyyqocjlix30no89bkeo.png",
+        "365" : "https://patchwiki.biligame.com/images/pvzrh/9/98/c64u4rpd6sk2i0ljvj06xa6d77dinv3.png",
+        "366" : "https://patchwiki.biligame.com/images/pvzrh/8/87/snksjzqog3djgo0f61dbn485c1vgf3q.png",
+        "367" : "https://patchwiki.biligame.com/images/pvzrh/d/db/1zru6gbzte88qn58exi48zpo3s9tr86.png",
+        "368" : "https://patchwiki.biligame.com/images/pvzrh/4/42/q8c5f81oqt1qck07iystmh89yjbdgbr.png",
+        "800" : "https://patchwiki.biligame.com/images/pvzrh/4/43/nfjbm3s85oo3ghelbravrxcopo6gmnq.png",
+        "900" : "https://patchwiki.biligame.com/images/pvzrh/9/95/14oh8njvtf7502zkwi047dh3m48dw52.png",
+        "901" : "https://patchwiki.biligame.com/images/pvzrh/f/fb/h9epo25ul1dvmqe0dwhxfw0vpikjq6b.png",
+        "902" : "https://patchwiki.biligame.com/images/pvzrh/c/c3/d8wsz9oz5atqmgaisodhr5yxgcmz3zq.png",
+        "903" : "https://patchwiki.biligame.com/images/pvzrh/b/b7/blk8ryhmqdzasv7t031k4bqjewdhc9r.png",
+        "904" : "https://patchwiki.biligame.com/images/pvzrh/0/02/rz7n806jx14yrxper9boflk8cpryfri.png",
+        "905" : "https://patchwiki.biligame.com/images/pvzrh/d/d6/rel58i4d34wvv0omxho1lo5eetqdljt.png",
+        "906" : "https://patchwiki.biligame.com/images/pvzrh/6/69/4p5bpphzl2mv9mbct5ys8817gih9h1y.png",
+        "907" : "https://patchwiki.biligame.com/images/pvzrh/2/22/e1n59h335s3kgjo11239ic25160p6mf.png",
+        "908" : "https://patchwiki.biligame.com/images/pvzrh/9/93/camsvovea26xxvt57qym76vdzkpvoom.png",
+        "909" : "https://patchwiki.biligame.com/images/pvzrh/5/50/8etisc281qgjq3btf5qn0i5k89a2wwu.png",
+        "910" : "https://patchwiki.biligame.com/images/pvzrh/3/38/n7u0w5pbobktog5y7whraf20rht99je.png",
+        "911" : "https://patchwiki.biligame.com/images/pvzrh/b/b7/ql8mwy95zccjpdiz7gsfj5eufxxn10e.png",
+        "912" : "https://patchwiki.biligame.com/images/pvzrh/1/12/4uuj5pdehnbirdvplbxja7koxuz87e0.png",
+        "913" : "https://patchwiki.biligame.com/images/pvzrh/0/08/3cn1trutetfosbwh7933xo0v2mzpdgz.png",
+        "914" : "https://patchwiki.biligame.com/images/pvzrh/7/76/pki8j5b4eyyyx3jk323ndz8oq1lwidt.png",
+        "915" : "https://patchwiki.biligame.com/images/pvzrh/d/df/4lnee1e7wn3msvwdczcvvxku37odyka.png",
+        "916" : "https://patchwiki.biligame.com/images/pvzrh/f/fc/gvc41vjp4ykzpwf43sgcj3jc7svpngb.png",
+        "917" : "https://patchwiki.biligame.com/images/pvzrh/6/60/33pgu9hhjlabf030on7aqzbvq5z8ru8.png",
+        "918" : "https://patchwiki.biligame.com/images/pvzrh/6/64/h21j2x47ttif7zn452d3u6w9z6qq4hj.png",
+        "919" : "https://patchwiki.biligame.com/images/pvzrh/1/11/16e8fs2n57oucj0hdyoq2sl66ydc6dm.png",
+        "920" : "https://patchwiki.biligame.com/images/pvzrh/9/94/3x2hlclvsi87auiefrbyuxrgjyk3rci.png",
+        "921" : "https://patchwiki.biligame.com/images/pvzrh/7/7d/n2f0obrhbae64ducjcpkumamlil2wj2.png",
+        "922" : "https://patchwiki.biligame.com/images/pvzrh/b/bc/0deqb3qavyajt9cj4getumpvb249vp3.png",
+        "923" : "https://patchwiki.biligame.com/images/pvzrh/3/3d/81vmlhytsjpy0qxoddvqj3s1v779r0a.png",
+        "924" : "https://patchwiki.biligame.com/images/pvzrh/e/ee/rfglz3h9htn7pymdun0j5qf2ya0fq89.png",
+        "925" : "https://patchwiki.biligame.com/images/pvzrh/6/65/ad8wmt3jids3if3y3h90h5q0d83m35p.png",
+        "926" : "https://patchwiki.biligame.com/images/pvzrh/a/a4/497eci5c6noki1cl5opsliwacqrodzx.png",
+        "927" : "https://patchwiki.biligame.com/images/pvzrh/e/e6/jscvtn9bkn9uyxkttrk69olap91yfll.png",
+        "928" : "https://patchwiki.biligame.com/images/pvzrh/a/a3/ecob8ljx5kmbwamjt33780t7sj78hxf.png",
+        "929" : "https://patchwiki.biligame.com/images/pvzrh/e/e6/0myi4ykanaxucfvnupluagn3ozfq178.png",
+        "930" : "https://patchwiki.biligame.com/images/pvzrh/6/65/2k8q8k79stset5956mu1dg5p0oar89l.png",
+        "931" : "https://patchwiki.biligame.com/images/pvzrh/7/78/l7sxkwdgmh1bphxhmlt4mlqluhw7u88.png",
+        "932" : "https://patchwiki.biligame.com/images/pvzrh/5/59/cpeod3s5ai4fs7v1lj69m8pmctr3xhf.png",
+        "933" : "https://patchwiki.biligame.com/images/pvzrh/4/4c/84t0igiscls42jezzcflczg3eqa01ux.png",
+        "934" : "https://patchwiki.biligame.com/images/pvzrh/5/55/cyouu5qrryhrp2w8n7jfx7nydcwkbds.png",
+        "935" : "https://patchwiki.biligame.com/images/pvzrh/4/42/epzdib1akwkt7ur7l44lqcd3tzg77d2.png",
+        "936" : "https://patchwiki.biligame.com/images/pvzrh/b/ba/iriak5r9qt4iwkrhd0e5gtcsdxfsudn.png",
+        "937" : "https://patchwiki.biligame.com/images/pvzrh/1/1a/1q9uw0o8nx8hs7sp0upjvja9xkc4oah.png",
+        "938" : "https://patchwiki.biligame.com/images/pvzrh/6/6c/qgb3gt4pmikm8ekx6u29l9ydas604n3.png",
+        "939" : "https://patchwiki.biligame.com/images/pvzrh/b/b3/cdo3esubwvwcku9vrb61g0gxafj38ux.png",
+        "940" : "https://patchwiki.biligame.com/images/pvzrh/0/04/fr7ldbwc4jyzc6jqs5krgppg2ue0iot.png",
+        "941" : "https://patchwiki.biligame.com/images/pvzrh/a/aa/kczoxewm0tk6r7s6x6rnsvvwgg0klsv.png",
+        "942" : "https://patchwiki.biligame.com/images/pvzrh/e/e3/39mc2u82zmzo0m1fbakft5w204a5h28.png",
+        "943" : "https://patchwiki.biligame.com/images/pvzrh/1/16/k6fie89hai8owjcx1mbma88tn5hc9wy.png",
+        "944" : "https://patchwiki.biligame.com/images/pvzrh/a/ac/1vglksfc9l2l25sedh6xzoozs0lb3eh.png",
+        "945" : "https://patchwiki.biligame.com/images/pvzrh/0/00/hnp7tbrh6unwgdxcmyirj4k8dwtoet6.png",
+        "946" : "https://patchwiki.biligame.com/images/pvzrh/2/26/ngkx6pra2c8erob16rzf5006ji958vo.png",
+        "947" : "https://patchwiki.biligame.com/images/pvzrh/2/2c/lc8g6oqon27c67nfawm4dd4vsfcixyd.png",
+        "948" : "https://patchwiki.biligame.com/images/pvzrh/a/a8/ejr60bjz6rlfx40lvbmbl4lx7jl94k8.png",
+        "949" : "https://patchwiki.biligame.com/images/pvzrh/3/33/m9x7sqvwj2dcpnjmvi75gru3jnzm9ck.png",
+        "950" : "https://patchwiki.biligame.com/images/pvzrh/3/3e/myi8gorayqyk2nltbk4a4cjvlrlvhb8.png",
+        "951" : "https://patchwiki.biligame.com/images/pvzrh/3/35/mnzuvsvgs0txdagj76weliq18l8hqpj.png",
+        "952" : "https://patchwiki.biligame.com/images/pvzrh/b/b8/d4mg4771e47mojxokc7zmyiqit94lvm.png",
+        "953" : "https://patchwiki.biligame.com/images/pvzrh/f/ff/j0577sr865rbjedvju4tc9djh58isxc.png",
+        "954" : "https://patchwiki.biligame.com/images/pvzrh/0/0c/i49m273a3ob26s0rjjctkrdc3p8jjvn.png",
+        "955" : "https://patchwiki.biligame.com/images/pvzrh/4/49/5gck8bjyya68ae1oyebxqvn4ed5mg3c.png",
+        "956" : "https://patchwiki.biligame.com/images/pvzrh/1/1a/s7c1oe10psphg85bd9xvel8sdfwx8dj.png",
+        "957" : "https://patchwiki.biligame.com/images/pvzrh/5/5b/t7l6f0ieg9lb89ol74wa1xh887ddfmj.png",
+        "958" : "https://patchwiki.biligame.com/images/pvzrh/5/5e/hfwyelx9tu4j0whuw32avoldeqe5mz6.png",
+        "959" : "https://patchwiki.biligame.com/images/pvzrh/7/73/g7zr5ym2jovp3ck1q882o71lodqn1lv.png",
+        "960" : "https://patchwiki.biligame.com/images/pvzrh/1/19/4a4zhbsb243le8oaxr8vai66moetvyh.png",
+        "961" : "https://patchwiki.biligame.com/images/pvzrh/2/2c/rl48flcx9mz4naq5eeoowpd4v9vdfa5.png",
+        "962" : "https://patchwiki.biligame.com/images/pvzrh/6/6f/hoi3dqiw5mwlsrgjywu2hcwl2athn36.png",
+        "963" : "https://patchwiki.biligame.com/images/pvzrh/c/ce/jygh51idofz2ynye4pbcwtm14wc809q.png",
+        "964" : "https://patchwiki.biligame.com/images/pvzrh/6/66/kbusl016ep62hfx084na7pr603qqmle.png",
+        "965" : "https://patchwiki.biligame.com/images/pvzrh/b/ba/rp3evcxn7yk1xejat2eoiurn059il0p.png",
+        "966" : "https://patchwiki.biligame.com/images/pvzrh/6/65/8pcu7133zjyoshp31h2ozk0ods6ztk4.png",
+        "967" : "https://patchwiki.biligame.com/images/pvzrh/0/06/f89zwc2ihvcuj5vvpexnttf1hqbghk3.png",
+        "968" : "https://patchwiki.biligame.com/images/pvzrh/7/7e/75lpl0r9in9dvb9vst7tfib21iqhi4w.png",
+        "969" : "https://patchwiki.biligame.com/images/pvzrh/a/ab/cypgoql3555u5ok0vnhcsqh0w07tqek.png",
+        "970" : "https://patchwiki.biligame.com/images/pvzrh/8/8a/ay5267zuf8p7j2ea4354atf76gte0tk.png",
+        "971" : "https://patchwiki.biligame.com/images/pvzrh/8/80/luqh4bc7kmau527bicxr994ib73ork5.png",
+        "972" : "https://patchwiki.biligame.com/images/pvzrh/8/86/j8hge81izdkmxxkj1mtmcx4kzlwot6f.png",
+        "973" : "https://patchwiki.biligame.com/images/pvzrh/1/1f/b1n3oi19e6cqt58opdlifc3f1xf2y06.png",
+        "974" : "https://patchwiki.biligame.com/images/pvzrh/1/1d/34whbuojpt1iuulw42ia58pr71o1tgr.png",
+        "975" : "https://patchwiki.biligame.com/images/pvzrh/f/f3/t9ffpznkb656e91l3kax6woqizt3s8m.png",
+        "976" : "https://patchwiki.biligame.com/images/pvzrh/7/71/tgasvv2pvjrbsvytbmp4snl3c2jaoy4.png",
+        "977" : "https://patchwiki.biligame.com/images/pvzrh/7/75/oq7hjiko7nvpu3tj23vajygaptves77.png",
+        "978" : "https://patchwiki.biligame.com/images/pvzrh/2/22/oc55kabhfcqm9yxq17t4s8x7xiinf33.png",
+        "979" : "https://patchwiki.biligame.com/images/pvzrh/5/51/fj0ari9sfxjixlll74fcwijcrlnk3mi.png",
+        "980" : "https://patchwiki.biligame.com/images/pvzrh/1/11/ox6aa6oe1tw0g50t2npuspj3nn5c4j3.png",
+        "981" : "https://patchwiki.biligame.com/images/pvzrh/0/03/j2or86xw5woajnu8sccmotc8pmwe717.png",
+        "982" : "https://patchwiki.biligame.com/images/pvzrh/d/d8/aqwnhbkhx9wqd89l9vr60otx9j2b1rd.png",
+        "983" : "https://patchwiki.biligame.com/images/pvzrh/f/fd/i5jtew6d765vflc0fjwvwo9pzmpnssj.png",
+        "984" : "https://patchwiki.biligame.com/images/pvzrh/5/5c/qnojrhmdn0l0h9h706ls1e61c8vbjxd.png",
+        "985" : "https://patchwiki.biligame.com/images/pvzrh/a/ac/bz1f0nrs1qee1nmufgflyxr17w6io0r.png",
+        "986" : "https://patchwiki.biligame.com/images/pvzrh/0/07/cbpiqv8mrglf4qf9dfzk58qhi0r3rq2.png",
+        "987" : "https://patchwiki.biligame.com/images/pvzrh/e/e4/nd3zkf3rnj6xjjfr6vl409p9uwm4zyl.png",
+        "988" : "https://patchwiki.biligame.com/images/pvzrh/2/20/dirdhc8lu2tn5s6srep44akzq2v3vo7.png",
+        "989" : "https://patchwiki.biligame.com/images/pvzrh/d/d7/hqbm5l0e8t2gbdsueobq6czdlt37ayj.png",
+        "990" : "https://patchwiki.biligame.com/images/pvzrh/f/f4/qisxtnpjkc1ibavdd7wuk8kvdqkri7f.png",
+        "991" : "https://patchwiki.biligame.com/images/pvzrh/0/01/rnfd340u2ijm7jhf3egj7p8zen1k90e.png",
+        "992" : "https://patchwiki.biligame.com/images/pvzrh/a/a3/398nx28kpbn69id8n78v8ajmktlvecr.png",
+        "993" : "https://patchwiki.biligame.com/images/pvzrh/8/80/3asoyjs7wf1ta1yjfcj4hjcbdp6kzfn.png",
+        "994" : "https://patchwiki.biligame.com/images/pvzrh/e/e6/3asoyjs7wf1ta1yjfcj4hjcbdp6kzfn.png",
+        "995" : "https://patchwiki.biligame.com/images/pvzrh/c/c2/p0twv0at7w5u9k2yi33nlfso0uhdhmh.png",
+        "996" : "https://patchwiki.biligame.com/images/pvzrh/e/ea/orpddq61875tcxg38ys0bjd9wsv0dn2.png",
+        "997" : "https://patchwiki.biligame.com/images/pvzrh/2/2d/p079suibzf8a33g53qq069cdmrd36p9.png",
+        "998" : "https://patchwiki.biligame.com/images/pvzrh/1/13/bd7nv7ve9em381pd8x6nof4ih34qrjy.png",
+        "999" : "https://patchwiki.biligame.com/images/pvzrh/a/a5/4r75y464dutrsry3udx6371tsb0eojq.png",
+        "1000" : "https://patchwiki.biligame.com/images/pvzrh/4/43/9xqxxo3tjlpym0nbsia1h7z8fx6orl9.png",
+        "1001" : "https://patchwiki.biligame.com/images/pvzrh/5/52/mrsavty9oyy2io31u8aaq4rm6gj4wkz.png",
+        "1002" : "https://patchwiki.biligame.com/images/pvzrh/7/77/k3670lhq1nzvjmndm4uwe4077yosdh1.png",
+        "1003" : "https://patchwiki.biligame.com/images/pvzrh/e/e1/skxjuryzmglu8mx5nojp5sd80fva7ok.png",
+        "1004" : "https://patchwiki.biligame.com/images/pvzrh/1/19/6uwfr8tbdmvlyaaket4vwd0p5owyi4l.png",
+        "1005" : "https://patchwiki.biligame.com/images/pvzrh/7/70/ntfizddvr6sm1ierob5tag9lqp748uq.png",
+        "1006" : "https://patchwiki.biligame.com/images/pvzrh/5/56/46hgpfty3l1zg5cqr9tjgpav36nyo5f.png",
+        "1007" : "https://patchwiki.biligame.com/images/pvzrh/d/d1/o2q1kk37ldwdqiymp887uag016ci54r.png",
+        "1008" : "https://patchwiki.biligame.com/images/pvzrh/7/78/5zfjz4q416t6av37w2j686wyl64sog7.png",
+        "1009" : "https://patchwiki.biligame.com/images/pvzrh/6/61/a02il3q4w6ofh0mw327i12bxx8n33yb.png",
+        "1010" : "https://patchwiki.biligame.com/images/pvzrh/a/af/d8bkepaovcg0lbz4antgv95y28qwuzb.png",
+        "1011" : "https://patchwiki.biligame.com/images/pvzrh/d/d1/aldjlzl99pdssddxjitx6tfh4ibzf1m.png",
+        "1012" : "https://patchwiki.biligame.com/images/pvzrh/f/fd/pw3f6zzbuhiolqh5goehrc428492ixv.png",
+        "1013" : "https://patchwiki.biligame.com/images/pvzrh/8/8d/bxt4w91t7dn91ys6y86oohbcno8szro.png",
+        "1014" : "https://patchwiki.biligame.com/images/pvzrh/b/b9/67fyfvg7ntbzhqj12ic7n722nysrpgd.png",
+        "1015" : "https://patchwiki.biligame.com/images/pvzrh/1/15/lv88o0gr402s9cr8pk1ofj0jp4a579a.png",
+        "1016" : "https://patchwiki.biligame.com/images/pvzrh/e/e9/l49h8fadhj2afu4psawxvh8zc8ayffc.png",
+        "1017" : "https://patchwiki.biligame.com/images/pvzrh/b/bd/1uayaqhc8hwnxft61e2v6b5l4225udd.png",
+        "1018" : "https://patchwiki.biligame.com/images/pvzrh/6/69/l264lvgz7gmkisxcb13ykipo2tx97o2.png",
+        "1019" : "https://patchwiki.biligame.com/images/pvzrh/1/1b/lfx61ooeunn6w4jssqf4ie5xyaw97gn.png",
+        "1020" : "https://patchwiki.biligame.com/images/pvzrh/1/1c/jelnpofyyhl4eec99t3mycyuf7ygslk.png",
+        "1021" : "https://patchwiki.biligame.com/images/pvzrh/c/c3/oqw2ubp58wkmlwkj2nw0gfm0n2fxwr5.png",
+        "1022" : "https://patchwiki.biligame.com/images/pvzrh/4/49/22xy32taok2nldyzu4q81nxybv6tgo2.png",
+        "1023" : "https://patchwiki.biligame.com/images/pvzrh/e/e7/bjftdi19l14hpw9dwm3u60olvxymxm8.png",
+        "1024" : "https://patchwiki.biligame.com/images/pvzrh/2/28/mwehihc58a078p3zxe7x1m6hfctr1ek.png",
+        "1025" : "https://patchwiki.biligame.com/images/pvzrh/7/76/6kq5r3inzgx86t8fd1yk5umtrqf5tl3.png",
+        "1026" : "https://patchwiki.biligame.com/images/pvzrh/f/fd/8qtcytdhomu5gdu98u08ylpjh3am2wb.png",
+        "1027" : "https://patchwiki.biligame.com/images/pvzrh/5/5d/gv10u0q1ushp1vk2yi7aq7w5msj742d.png",
+        "1028" : "https://patchwiki.biligame.com/images/pvzrh/c/c9/a0gniy5iuo18013szh24370l4n1tlw8.png",
+        "1029" : "https://patchwiki.biligame.com/images/pvzrh/1/1d/5giws6c8qa9y8l3njbv0vq1lbtpdcqd.png",
+        "1030" : "https://patchwiki.biligame.com/images/pvzrh/b/b5/42rks00mf03qktzxsvg8lnfow4z3hyx.png",
+        "1031" : "https://patchwiki.biligame.com/images/pvzrh/e/e0/9xegpguibeou7hcb4gqrw286c1u2lxn.png",
+        "1032" : "https://patchwiki.biligame.com/images/pvzrh/6/69/8u7qyyfto0u3debtxb413ppu6ug5eyo.png",
+        "1033" : "https://patchwiki.biligame.com/images/pvzrh/5/54/pe5wngj70hp0bmqnm0ob8lk3vr7cb9c.png",
+        "1034" : "https://patchwiki.biligame.com/images/pvzrh/9/9c/buv7kh9uxopseswnhn4vmo1i6knmz5j.png",
+        "1035" : "https://patchwiki.biligame.com/images/pvzrh/6/6e/4uwo7rf36ktzoxtqjyog9g2qytqe1ul.png",
+        "1036" : "https://patchwiki.biligame.com/images/pvzrh/6/66/m8l34nrwxvsu9s07jz6rpouxz02rlvz.png",
+        "1037" : "https://patchwiki.biligame.com/images/pvzrh/c/cc/3i63n37gz3xdw7i8h6tm2dkq468uens.png",
+        "1038" : "https://patchwiki.biligame.com/images/pvzrh/c/c2/lwlij58361yz1fv91kk6vsxz1x0o5gm.png",
+        "1039" : "https://patchwiki.biligame.com/images/pvzrh/9/9e/7b2o1q91xes5qg9sq4u15xx9venmqdw.png",
+        "1040" : "https://patchwiki.biligame.com/images/pvzrh/3/3c/mt0cfs4azhdkgozef6gobv0b9vmdyvw.png",
+        "1041" : "https://patchwiki.biligame.com/images/pvzrh/d/d7/961bvjh6rmtedle2xog7vjlnlkatoo3.png",
+        "1042" : "https://patchwiki.biligame.com/images/pvzrh/5/54/ee7hdnxhwgq7uuv6n8n105ncuj78303.png",
+        "1043" : "https://patchwiki.biligame.com/images/pvzrh/7/73/2evvka4gww66vp3mcph0558t2p572q8.png",
+        "1044" : "https://patchwiki.biligame.com/images/pvzrh/5/5f/fea4gripsj98x8nlj58o8x7dw5gh95i.png",
+        "1045" : "https://patchwiki.biligame.com/images/pvzrh/e/e8/kgcuheltd8ozdlvdhuj4dy9lxl2a2ww.png",
+        "1046" : "https://patchwiki.biligame.com/images/pvzrh/7/71/1bolshr7umlkkz8cl53zjml8hin6xah.png",
+        "1047" : "https://patchwiki.biligame.com/images/pvzrh/5/5b/67s4r5b6senb4gw9i4o7mmmb3wbdbm5.png",
+        "1048" : "https://patchwiki.biligame.com/images/pvzrh/4/4d/gwrxozgzylt4kh9ylb9643uar5ensbt.png",
+        "1049" : "https://patchwiki.biligame.com/images/pvzrh/4/46/o5rnxos9gq9najvka8idcme9lz0317j.png",
+        "1050" : "https://patchwiki.biligame.com/images/pvzrh/d/d9/b8esgrotttgz0gxvg6cyvkrbflg57hr.png",
+        "1051" : "https://patchwiki.biligame.com/images/pvzrh/b/bd/pk1e6s1g1xrnw8ov4j4w8eyhmof19wx.png",
+        "1052" : "https://patchwiki.biligame.com/images/pvzrh/9/90/dc97q93rp1o58vfsfhlgo8a4ya1tckt.png",
+        "1053" : "https://patchwiki.biligame.com/images/pvzrh/5/5b/b7hvl1fhyp62cgoxbtucu0b0qcfc7m6.png",
+        "1054" : "https://patchwiki.biligame.com/images/pvzrh/a/ac/lgmvjisa9vhzc0ykicxj1nnsbqw6t7y.png",
+        "1055" : "https://patchwiki.biligame.com/images/pvzrh/0/06/ia7fd45ojhaw5p5tjlnr9face8dvspd.png",
+        "1056" : "https://patchwiki.biligame.com/images/pvzrh/1/1a/qha6lorrf9lla6c7qvar9b6r2uhpe8w.png",
+        "1057" : "https://patchwiki.biligame.com/images/pvzrh/9/9b/r6t6pky1qf39dw327wvqd73xmdd66ij.png",
+        "1058" : "https://patchwiki.biligame.com/images/pvzrh/7/78/huh5wp6u37qi6s4desoeru8pmq26wmu.png",
+        "1059" : "https://patchwiki.biligame.com/images/pvzrh/8/8a/h7scutv4b9ua2gdjcwq4n34sd49swo9.png",
+        "1060" : "https://patchwiki.biligame.com/images/pvzrh/3/36/lju85evg2p0pw14jwr2ye658fmn06fb.png",
+        "1061" : "https://patchwiki.biligame.com/images/pvzrh/9/9e/3o700hfmon5vbmsfcmttkq7r9aldg1n.png",
+        "1062" : "https://patchwiki.biligame.com/images/pvzrh/c/cf/3m9qimbgqx77acchgqcpbhsz8nbpsdl.png",
+        "1063" : "https://patchwiki.biligame.com/images/pvzrh/d/d8/r692i5gh1rvczu1h2zlng0030ksiv3w.png",
+        "1064" : "https://patchwiki.biligame.com/images/pvzrh/c/cd/hdeaw0y90ai88euzmd3ceg97m4evtav.png",
+        "1065" : "https://patchwiki.biligame.com/images/pvzrh/6/6e/642xn107ehss3j5wsvr4ur4hat779ub.png",
+        "1066" : "https://patchwiki.biligame.com/images/pvzrh/c/c8/sa81eifun2tffvx6bhvlqc3k7ssi22z.png",
+        "1067" : "https://patchwiki.biligame.com/images/pvzrh/2/2c/7w1xa28mlrhgt259ed7xxozi2dhd1pv.png",
+        "1068" : "https://patchwiki.biligame.com/images/pvzrh/2/29/ez62icnza9qvxqchep5dxymf5vaw0ic.png",
+        "1069" : "https://patchwiki.biligame.com/images/pvzrh/f/f9/4z99r5l7xs9zvau77jbspsezpw343en.png",
+        "1070" : "https://patchwiki.biligame.com/images/pvzrh/d/d8/j8wldc5mkoir6bgahxf7hj1ed40fxfc.png",
+        "1071" : "https://patchwiki.biligame.com/images/pvzrh/8/8a/4d7awdm96ynmfsa8s7af1tswozp2kdq.png",
+        "1072" : "https://patchwiki.biligame.com/images/pvzrh/d/db/oq4kx96ywb76ovl7eewlmh4tpscuqzh.png",
+        "1073" : "https://patchwiki.biligame.com/images/pvzrh/6/69/r906xgtcv29vo4hgripv3bvgkm9j3qq.png",
+        "1074" : "https://patchwiki.biligame.com/images/pvzrh/f/f7/qbeje2h9j8my0vgbwqc64l0o0ig0oml.png",
+        "1075" : "https://patchwiki.biligame.com/images/pvzrh/6/67/h5e400dzxffdk70esl7uscq17ltiv0i.png",
+        "1076" : "https://patchwiki.biligame.com/images/pvzrh/4/4e/nspmphs67edjakkfcm078hrjtv6k4ks.png",
+        "1077" : "https://patchwiki.biligame.com/images/pvzrh/a/a9/a7wh9s715og1adiiby1sxw7vn068za8.png",
+        "1078" : "https://patchwiki.biligame.com/images/pvzrh/8/8e/77ph9nx1x2zjo53758ezl0558b9vp5d.png",
+        "1079" : "https://patchwiki.biligame.com/images/pvzrh/3/3d/jwvvpgmgabr1qt0v5qldwaarul25mbk.png",
+        "1080" : "https://patchwiki.biligame.com/images/pvzrh/6/6d/oo92n5do4f2sd44t8tb3sc08wf2p2ns.png",
+        "1081" : "https://patchwiki.biligame.com/images/pvzrh/6/6c/m2nx142ra0jrddtdgkp6ecu5jfqpzfx.png",
+        "1082" : "https://patchwiki.biligame.com/images/pvzrh/f/fc/sttx175msg4obs972sckx3qwh361clp.png",
+        "1083" : "https://patchwiki.biligame.com/images/pvzrh/2/25/2kngeq4mpkiqrx2wsi419sk2v1aw5fs.png",
+        "1084" : "https://patchwiki.biligame.com/images/pvzrh/a/aa/8qd4ig8e0w2uyksnczbnrpkyqu2sh5i.png",
+        "1085" : "https://patchwiki.biligame.com/images/pvzrh/7/78/5ai34afg6qel39ca358v7o6x0bhw093.png",
+        "1086" : "https://patchwiki.biligame.com/images/pvzrh/f/f6/subpw4bobdzp90fzotqhnh5xbxmf5fy.png",
+        "1087" : "https://patchwiki.biligame.com/images/pvzrh/e/e3/db8uwgn1q5jr9b33eo2oktfv6q0f1ju.png",
+        "1088" : "https://patchwiki.biligame.com/images/pvzrh/1/10/t772ioijozty5en4nmw83dvodnu1mt4.png",
+        "1089" : "https://patchwiki.biligame.com/images/pvzrh/c/c4/8wgfehwibtso2vved1rho6sulk3tcii.png",
+        "1090" : "https://patchwiki.biligame.com/images/pvzrh/0/02/13ufc5vewsci0659vdl1v77fhsvzaf1.png",
+        "1091" : "https://patchwiki.biligame.com/images/pvzrh/2/24/7vtc94plb398hkizgyyvrnlm0fmv8qp.png",
+        "1092" : "https://patchwiki.biligame.com/images/pvzrh/d/d9/e4y7ea1cerk02ab5f2k3m9vmihv1zn7.png",
+        "1093" : "https://patchwiki.biligame.com/images/pvzrh/a/a3/fo7kotz6cugegfhsy2hkdzx0lyh1w2u.png",
+        "1094" : "https://patchwiki.biligame.com/images/pvzrh/c/c8/m7kr4zrep9ldkokgflskbecft7goisb.png",
+        "1095" : "https://patchwiki.biligame.com/images/pvzrh/4/4c/3vf403l46897klj2iodjonvn2g1dll2.png",
+        "1096" : "https://patchwiki.biligame.com/images/pvzrh/8/8e/qpj075d7ds0hn0vnyuagf41xsh4bv7u.png",
+        "1097" : "https://patchwiki.biligame.com/images/pvzrh/f/f7/3lt4m7tuhvevnryqo4wlqic8blh3jet.png",
+        "1098" : "https://patchwiki.biligame.com/images/pvzrh/1/1f/slfqqbvedgeq0sjakuy7p6pj4g1my6j.png",
+        "1099" : "https://patchwiki.biligame.com/images/pvzrh/c/c6/ssugeqylwgrcpsrnjh3vxgxx6oopyoh.png",
+        "1100" : "https://patchwiki.biligame.com/images/pvzrh/6/64/h9t0omyx23tl2z50ax24azuwora1wgi.png",
+        "1101" : "https://patchwiki.biligame.com/images/pvzrh/d/d0/906msl1m94bp0404e9fhjz8q7mx4ap0.png",
+        "1102" : "https://patchwiki.biligame.com/images/pvzrh/c/cf/m4sp3b2hbdzso67a3lhr15attk9br37.png",
+        "1103" : "https://patchwiki.biligame.com/images/pvzrh/d/db/k623sfngjk9aupwsejxaeksnzbov331.png",
+        "1104" : "https://patchwiki.biligame.com/images/pvzrh/3/38/gg5khnn7l62h9995mc67lgfaxv4qj7i.png",
+        "1105" : "https://patchwiki.biligame.com/images/pvzrh/a/a6/lnjofy3hy8f4vs98qz0vqtc2gqhoh9p.png",
+        "1106" : "https://patchwiki.biligame.com/images/pvzrh/5/52/gxgm3n62ct0lk94ex4pojprw5er7rsb.png",
+        "1107" : "https://patchwiki.biligame.com/images/pvzrh/0/06/t58dmshtcbkqanuatbx0ykta8mdxxw0.png",
+        "1108" : "https://patchwiki.biligame.com/images/pvzrh/4/48/rja5l9vdw6zxvzz2kjlsio9ficm1qos.png",
+        "1109" : "https://patchwiki.biligame.com/images/pvzrh/f/fb/7hpnvtvqr85e8gqig6o755c6kxejnho.png",
+        "1110" : "https://patchwiki.biligame.com/images/pvzrh/2/2e/tusdhai71fx1bk12dl588n2cwbd2pur.png",
+        "1111" : "https://patchwiki.biligame.com/images/pvzrh/d/dd/7a6hmio5ntblv5gq4vhghtv302vgkdi.png",
+        "1112" : "https://patchwiki.biligame.com/images/pvzrh/8/8d/h14baxwmxac69uhznc80ohnk0vwrtws.png",
+        "1113" : "https://patchwiki.biligame.com/images/pvzrh/c/c8/h8nrih9x765pgdn35uf6k2t6oz70dao.png",
+        "1114" : "https://patchwiki.biligame.com/images/pvzrh/c/cc/kmrllpt1mppbx5fnramrtf8xaz29jpy.png",
+        "1115" : "https://patchwiki.biligame.com/images/pvzrh/1/13/03luh4fq1pyoqzd930iik48z1j1dfps.png",
+        "1116" : "https://patchwiki.biligame.com/images/pvzrh/0/0e/l7jd61c03y8e4liqvehadj2oa1yi0dg.png",
+        "1117" : "https://patchwiki.biligame.com/images/pvzrh/e/ef/eiyhu2flumlycyusp1eh00ymjlta5v9.png",
+        "1118" : "https://patchwiki.biligame.com/images/pvzrh/d/d3/5ne09kn3sewjfuihtb77dy11cunol0c.png",
+        "1119" : "https://patchwiki.biligame.com/images/pvzrh/a/a2/ifwrwcwc093nkxs7w205xix2xvjdh1q.png",
+        "1120" : "https://patchwiki.biligame.com/images/pvzrh/7/74/gc75ufhek176yajlja4vaueuloozs9z.png",
+        "1121" : "https://patchwiki.biligame.com/images/pvzrh/8/85/3c9vhl6oimrnjn5ctmoj162ow36hdh3.png",
+        "1122" : "https://patchwiki.biligame.com/images/pvzrh/0/02/5h8i9l8j06ug2i4j0xbh0mt8qtwx2u3.png",
+        "1123" : "https://patchwiki.biligame.com/images/pvzrh/0/06/33ka6q8b65ttw97cck83nlc6xadl2uz.png",
+        "1124" : "https://patchwiki.biligame.com/images/pvzrh/3/38/eq1m2qydae0dj8t2jli5j9ixw6t6p23.png",
+        "1125" : "https://patchwiki.biligame.com/images/pvzrh/0/0b/oxctxj4m4srfxqvee5v6tjzph1hroj1.png",
+        "1126" : "https://patchwiki.biligame.com/images/pvzrh/3/3b/0yaqzj4yeo8h411sf90ic4thed4k6pj.png",
+        "1127" : "https://patchwiki.biligame.com/images/pvzrh/c/c2/mrs9ysvbn38g28ulwb3br4k7s5uagsj.png",
+        "1128" : "https://patchwiki.biligame.com/images/pvzrh/b/b4/8uin9rr01mfrt8oxyhxhc5ofd8h6eht.png",
+        "1129" : "https://patchwiki.biligame.com/images/pvzrh/4/4f/iw8291bs11qkwinhhnkkz8vnrxd8agr.png",
+        "1130" : "https://patchwiki.biligame.com/images/pvzrh/0/01/ovn06p4v8h30hiq4bd48h2uycjli3pm.png",
+        "1131" : "https://patchwiki.biligame.com/images/pvzrh/a/ae/4ub48jsg1twsdhr38q16r8vnq9ev86n.png",
+        "1132" : "https://patchwiki.biligame.com/images/pvzrh/2/2a/2ri0v8i6963mw20b482w1sv4raksa4h.png",
+        "1133" : "https://patchwiki.biligame.com/images/pvzrh/e/e5/068sxovqtgmqv51360ro1ulyzyz7mpv.png",
+        "1134" : "https://patchwiki.biligame.com/images/pvzrh/d/db/n6ftiwxy1hkgeat9me8g11srfz50wcy.png",
+        "1135" : "https://patchwiki.biligame.com/images/pvzrh/8/85/oaha8v13b4m15nroqel4pzucjrkq3sa.png",
+        "1136" : "https://patchwiki.biligame.com/images/pvzrh/c/c0/o8l0rsaigowlgtbezt5d5wt1u8als0n.png",
+        "1137" : "https://patchwiki.biligame.com/images/pvzrh/7/76/4nx51gpyug50bsl9ybf15frptsxb159.png",
+        "1138" : "https://patchwiki.biligame.com/images/pvzrh/5/58/3dnw4l62kd2ai65q4eta68lpdch6q2n.png",
+        "1139" : "https://patchwiki.biligame.com/images/pvzrh/d/d4/lxk588i4jm9934s8b4q9fry6uszn0em.png",
+        "1140" : "https://patchwiki.biligame.com/images/pvzrh/b/bc/hx3ky5blfcq2dvgvu8ehjpg4o11gjo2.png",
+        "1141" : "https://patchwiki.biligame.com/images/pvzrh/4/41/jkza5rw5catptgnqwk0xju914k84re6.png",
+        "1142" : "https://patchwiki.biligame.com/images/pvzrh/5/51/2jw92x3xbjrdm1raxkgugsf653so0e3.png",
+        "1143" : "https://patchwiki.biligame.com/images/pvzrh/4/46/1rqwfm3ue6rf724sc7cllgvun1g4t8a.png",
+        "1144" : "https://patchwiki.biligame.com/images/pvzrh/d/d4/fix94m7am7pq9m1dmnp3cfi67g5u4gu.png",
+        "1145" : "https://patchwiki.biligame.com/images/pvzrh/1/16/hgg8p8diqhowuc6w87qobiyru6fnz2a.png",
+        "1146" : "https://patchwiki.biligame.com/images/pvzrh/c/ce/142cg45qnd813duvh81ejnu5vi4jnrq.png",
+        "1147" : "https://patchwiki.biligame.com/images/pvzrh/f/f6/9g1dcbhu683pgj5ofbxholt912dfgc7.png",
+        "1148" : "https://patchwiki.biligame.com/images/pvzrh/1/1f/i5wa6nzyy8k6rq51bsfe7fn14jx0aop.png",
+        "1149" : "https://patchwiki.biligame.com/images/pvzrh/b/b4/a58o7dncam2zvlfucx7rxb8s4xllptx.png",
+        "1150" : "https://patchwiki.biligame.com/images/pvzrh/9/9a/6h2zefgsi9kb7jjo0evambpiykj5prh.png",
+        "1151" : "https://patchwiki.biligame.com/images/pvzrh/0/0a/mt4bz18j9hies5m7zycx1rq69fpba4e.png",
+        "1152" : "https://patchwiki.biligame.com/images/pvzrh/3/35/n1e8o7a5po4h7de2mjykrua6ctaqhqh.png",
+        "1153" : "https://patchwiki.biligame.com/images/pvzrh/1/1a/220cld5130fxfrbind11gz0el7oy2ar.png",
+        "1154" : "https://patchwiki.biligame.com/images/pvzrh/2/28/d5jypw1bwlpcsmvz523f6o9jhupiaem.png",
+        "1155" : "https://patchwiki.biligame.com/images/pvzrh/3/35/na5t86d0ru05fedv1udsxw4u18vnwef.png",
+        "1156" : "https://patchwiki.biligame.com/images/pvzrh/4/4c/98wgos9enjsnwpogclhepq3hq22wzwp.png",
+        "1157" : "https://patchwiki.biligame.com/images/pvzrh/3/31/azktcvo90t1a621f06toq10czewml1n.png",
+        "1158" : "https://patchwiki.biligame.com/images/pvzrh/5/58/nvs7m3ro80etto7rw3j2ovutebzmtj3.png",
+        "1159" : "https://patchwiki.biligame.com/images/pvzrh/0/05/ol0mw9079eb5mi9hwzpz8yygfdm04vq.png",
+        "1160" : "https://patchwiki.biligame.com/images/pvzrh/e/e6/np90q947xzzlojc6wlm8w2y89jjwbfu.png",
+        "1161" : "https://patchwiki.biligame.com/images/pvzrh/9/98/b45xtilxb9mtlcyss5hxk0872sxgj42.png",
+        "1162" : "https://patchwiki.biligame.com/images/pvzrh/8/85/3o4yxteymwv3prs0vkyz1ci2ww5u9lk.png",
+        "1163" : "https://patchwiki.biligame.com/images/pvzrh/7/7a/fu55xt29tit3rbjclxb7ccemovgsp1o.png",
+        "1164" : "https://patchwiki.biligame.com/images/pvzrh/d/d2/4lgduvtpvqtiuf8ur5xn5boguppygy1.png",
+        "1165" : "https://patchwiki.biligame.com/images/pvzrh/9/9a/nvcvj9w7wfn4x1zk2osommdjhybetcd.png",
+        "1166" : "https://patchwiki.biligame.com/images/pvzrh/f/f3/ce0ge2a9mwhy39rjw1dsw3aw56i2q2a.png",
+        "1167" : "https://patchwiki.biligame.com/images/pvzrh/7/76/tgkgfgmsnmjdufgic0izuhe2xlgm69q.png",
+        "1168" : "https://patchwiki.biligame.com/images/pvzrh/4/4a/drra034h68v6he6elavawnziys1d5y8.png",
+        "1169" : "https://patchwiki.biligame.com/images/pvzrh/f/f2/jhv8ryqmsigfkkdl2pwhc65mrxgfd9k.png",
+        "1170" : "https://patchwiki.biligame.com/images/pvzrh/e/e6/t5sghjj4se895vcr8sv2va1xxdfz9od.png",
+        "1171" : "https://patchwiki.biligame.com/images/pvzrh/7/7f/ppq8hjsfnqg3wt1fvf4hfa8ld3vy95r.png",
+        "1172" : "https://patchwiki.biligame.com/images/pvzrh/8/8e/foho5gy8f90mvf59x1cvi8rp7x8an5w.png",
+        "1173" : "https://patchwiki.biligame.com/images/pvzrh/f/fd/81qxyrerwpgon8tnu9e2tls1iqswsjc.png",
+        "1174" : "https://patchwiki.biligame.com/images/pvzrh/2/27/5cfv6zneftnsw0gochnrlctfnsgr6fr.png",
+        "1175" : "https://patchwiki.biligame.com/images/pvzrh/9/9d/gvjqsy1q8jclwo9ktb6ee0knzwlsqwc.png",
+        "1176" : "https://patchwiki.biligame.com/images/pvzrh/9/91/mrtoiq81p3qfm8k9sr6g5dmzrwdxtug.png",
+        "1177" : "https://patchwiki.biligame.com/images/pvzrh/9/96/pq2fouuxrzxiyd47b197v8jplh0os63.png",
+        "1178" : "https://patchwiki.biligame.com/images/pvzrh/3/3e/m2uiefupt88t0vrastiojcdsj4nktvf.png",
+        "1179" : "https://patchwiki.biligame.com/images/pvzrh/8/80/bgu6r3k8z4359e0lazc5flqhbea3p2z.png",
+        "1180" : "https://patchwiki.biligame.com/images/pvzrh/7/71/fok86psb4c0opw9l4m34nhwr99ks04p.png",
+        "1181" : "https://patchwiki.biligame.com/images/pvzrh/e/e7/b28tuwfzsii4ajwnmt84b3sq43ktjr4.png",
+        "1182" : "https://patchwiki.biligame.com/images/pvzrh/3/3a/9kmvjz8l80a4sp1wxti5t0c9noisvlm.png",
+        "1183" : "https://patchwiki.biligame.com/images/pvzrh/f/f1/drjxo67rrqx7ja8vv2ofk978ygvvopo.png",
+        "1184" : "https://patchwiki.biligame.com/images/pvzrh/2/2f/amn5vxrrmqd8xx7tu23hs1kdui7cjn1.png",
+        "1185" : "https://patchwiki.biligame.com/images/pvzrh/f/f2/rbofaom3rn96gzqcexsli8q8qpalw2k.png",
+        "1186" : "https://patchwiki.biligame.com/images/pvzrh/8/8f/39808ede9tlk2skj470gwmj5u5yi7x4.png",
+        "1187" : "https://patchwiki.biligame.com/images/pvzrh/4/4c/tncf5xkj5hwo9jojz20ibqaxf3mqydn.png",
+        "1188" : "https://patchwiki.biligame.com/images/pvzrh/b/bf/sz6lp5d2c2behyqjqn04cbfqc7jqqsz.png",
+        "1189" : "https://patchwiki.biligame.com/images/pvzrh/a/a0/941daw5xypxpytm1a7fr5ec1rsov1cz.png",
+        "1190" : "https://patchwiki.biligame.com/images/pvzrh/6/66/7blce4q835ssokh52h3b9hqgksvyu3d.png",
+        "1191" : "https://patchwiki.biligame.com/images/pvzrh/a/a5/pnkp7m2potllrcml9ug64yutuclhq5v.png",
+        "1192" : "https://patchwiki.biligame.com/images/pvzrh/6/67/od38jvtp085iwb5h3fj23lg0zlscrjz.png",
+        "1193" : "https://patchwiki.biligame.com/images/pvzrh/e/eb/6yr67ucssd1xbto8x5gaersuud26qd6.png",
+        "1194" : "https://patchwiki.biligame.com/images/pvzrh/d/dd/pbo3wq0cd80fwfynm4kqgq833zxkkl3.png",
+        "1195" : "https://patchwiki.biligame.com/images/pvzrh/e/e7/94g9qpe5t10d98jetkdsu970jibn4ri.png",
+        "1196" : "https://patchwiki.biligame.com/images/pvzrh/3/33/00gb87lirn2iqo26hh2roc22xijrmwa.png",
+        "1197" : "https://patchwiki.biligame.com/images/pvzrh/7/71/r0amh4g8sgfroew8gxm5beheu8a0agy.png",
+        "1198" : "https://patchwiki.biligame.com/images/pvzrh/4/41/7waqlxw75d5bdp6s6eyqupy4r7s4bsw.png",
+        "1199" : "https://patchwiki.biligame.com/images/pvzrh/6/6a/b41egpzo7dkbkwopuqjh3a0ew6sbbzk.png",
+        "1200" : "https://patchwiki.biligame.com/images/pvzrh/9/9c/ody6mq8siuixazup735h6eylbpoeq9h.png",
+        "1201" : "https://patchwiki.biligame.com/images/pvzrh/5/57/00ijxglgyyf0uudzccgl4xxhnel6lm1.png",
+        "1202" : "https://patchwiki.biligame.com/images/pvzrh/9/9a/6p7lq18o9vucc38vug1ilv2b5dnnmsd.png",
+        "1203" : "https://patchwiki.biligame.com/images/pvzrh/d/d0/1t42dlfkhn5obr5zznnpepr9h79119o.png",
+        "1204" : "https://patchwiki.biligame.com/images/pvzrh/2/24/3nhflan31uu85eio1l4k2n8m1wzjbjb.png",
+        "1205" : "https://patchwiki.biligame.com/images/pvzrh/2/2d/7aod89dobe37fpdfpil1fivoy09chkf.png",
+        "1206" : "https://patchwiki.biligame.com/images/pvzrh/a/ac/3u2snmggrjqr38qn62590rthzyxy215.png",
+        "1207" : "https://patchwiki.biligame.com/images/pvzrh/8/82/3i0ik16aapr8423ymcgsheuhpbku5dy.png",
+        "1208" : "https://patchwiki.biligame.com/images/pvzrh/1/1a/4glh78vfvxwp1l8i6y9uchu9p0zu4cs.png",
+        "1209" : "https://patchwiki.biligame.com/images/pvzrh/a/a9/kxp5tbe0sz87lsipovrq8cifmanjyaf.png",
+        "1210" : "https://patchwiki.biligame.com/images/pvzrh/b/b7/jtayp21oz2lybdzioq8btp3y8neespm.png",
+        "1211" : "https://patchwiki.biligame.com/images/pvzrh/8/8b/4m9jpn9448mv8abms4jy164btjag8u0.png",
+        "1212" : "https://patchwiki.biligame.com/images/pvzrh/6/6d/a2j1t0k0udr4y2gfwxnz3finilapbat.png",
+        "1213" : "https://patchwiki.biligame.com/images/pvzrh/c/c5/rq9k5cvwyfnnsgzqxkac5m2k4w31ghe.png",
+        "1214" : "https://patchwiki.biligame.com/images/pvzrh/4/45/kviels7k8boocmaom7a6rjop3wqtwz4.png",
+        "1215" : "https://patchwiki.biligame.com/images/pvzrh/7/70/3852wwqzuqrvqioomaqilghdwledtbf.png",
+        "1216" : "https://patchwiki.biligame.com/images/pvzrh/8/8c/dkhvepbcsvraw2du6ub3m6vfnp55lon.png",
+        "1217" : "https://patchwiki.biligame.com/images/pvzrh/6/6e/5sluby7qb79v24kej9dlpuuzw1e2e31.png",
+        "1218" : "https://patchwiki.biligame.com/images/pvzrh/5/54/6wsdxmt12ojd6uty175ewesv068oax0.png",
+        "1219" : "https://patchwiki.biligame.com/images/pvzrh/6/61/ob2zgoqez1g8w0hctk13ioesrltstji.png",
+        "1220" : "https://patchwiki.biligame.com/images/pvzrh/d/d4/icorop7ive0im3xwueo4clju6q37tjo.png",
+        "1221" : "https://patchwiki.biligame.com/images/pvzrh/7/71/bhqbi4ued6j6pllhcgcctvxcrxqowff.png",
+        "1222" : "https://patchwiki.biligame.com/images/pvzrh/7/7a/99r7ok2j5u3x304tlhms6k6x4io47yo.png",
+        "1223" : "https://patchwiki.biligame.com/images/pvzrh/7/72/8ynnpex2e7426udfwqlu8uomtd25qvx.png",
+        "1224" : "https://patchwiki.biligame.com/images/pvzrh/1/14/mrdf9pig34yrgzge2ee9s14ui0qabzy.png",
+        "1225" : "https://patchwiki.biligame.com/images/pvzrh/6/6c/sez2bgiraah19ei3i3dik6wb08g04l0.png",
+        "1226" : "https://patchwiki.biligame.com/images/pvzrh/1/16/lnzaaa0ol7cj46dn25kssmc68gb2oei.png",
+        "1227" : "https://patchwiki.biligame.com/images/pvzrh/5/52/e3gsh32tbx1c3q086n171seclvwwx33.png",
+        "1228" : "https://patchwiki.biligame.com/images/pvzrh/2/26/4y7u4omyn8ptm27pbhf23hmg6caent7.png",
+        "1229" : "https://patchwiki.biligame.com/images/pvzrh/2/28/fcx747gg8x3syn81xsrgks9bvbzvh7k.png",
+        "1230" : "https://patchwiki.biligame.com/images/pvzrh/9/90/4v06s607oxemldhsw7o9bzkxp1meazc.png",
+        "1231" : "https://patchwiki.biligame.com/images/pvzrh/7/71/5e3tjzq4849sobw30mpjpgcz22nzx3d.png",
+        "1232" : "https://patchwiki.biligame.com/images/pvzrh/b/b1/liyw90e8fv51u5edjdx4gctdchg2n6g.png",
+        "1233" : "https://patchwiki.biligame.com/images/pvzrh/d/db/1d0btu6hagtrll78w0f0h2iw2a72n6e.png",
+        "1234" : "https://patchwiki.biligame.com/images/pvzrh/a/a7/2znsky2rvqsbmxpv2ve7a5u0tfgfmal.png",
+        "1235" : "https://patchwiki.biligame.com/images/pvzrh/1/1c/f1dedq880gphenf967gegkatn9panxd.png",
+        "1236" : "https://patchwiki.biligame.com/images/pvzrh/2/29/jtns1tshu32tsmonebq66zcg6g3dyxk.png",
+        "1237" : "https://patchwiki.biligame.com/images/pvzrh/8/80/il7us44fq4x474hqmlazqfaoayjtvcr.png",
+        "1238" : "https://patchwiki.biligame.com/images/pvzrh/7/7d/p9k6d3xdemkdalr7iw7e968sst0suay.png",
+        "1239" : "https://patchwiki.biligame.com/images/pvzrh/2/21/am3xcmhqtlh7q9cldfqfbxgvbr15tp5.png",
+        "1240" : "https://patchwiki.biligame.com/images/pvzrh/4/42/q8c5f81oqt1qck07iystmh89yjbdgbr.png",
+        "1241" : "https://patchwiki.biligame.com/images/pvzrh/0/04/b84nka86ink2s2zgl3ebbzhlgictwzv.png",
+        "1242" : "https://patchwiki.biligame.com/images/pvzrh/f/fb/cu3lx8uiy419tt80yi30dfv8fc4n3im.png",
+        "1243" : "https://patchwiki.biligame.com/images/pvzrh/a/aa/2h5tl338dbakrf46ju5q0nzzgdxvgl0.png",
+        "1244" : "https://patchwiki.biligame.com/images/pvzrh/6/6f/6pp9hhbrkvpr2zj3gx2ibnsl6jjibso.png",
+        "1245" : "https://patchwiki.biligame.com/images/pvzrh/2/20/2444torkgp8fohd8uta0o5yir0stean.png",
+        "1246" : "https://patchwiki.biligame.com/images/pvzrh/3/39/9q3lxu5wwi8kpcbiozma1epmu2xuscz.png",
+        "1247" : "https://patchwiki.biligame.com/images/pvzrh/1/12/dtvoli54tde62vr1u8cuo1vf7wk3bdv.png",
+        "1248" : "https://patchwiki.biligame.com/images/pvzrh/b/ba/1vslrcfa2l7cvzxidet2zbzqwacj92j.png",
+        "1249" : "https://patchwiki.biligame.com/images/pvzrh/e/e1/grg4zl0xmkspgy58emi9hatqkl7i1kx.png",
+        "1250" : "https://patchwiki.biligame.com/images/pvzrh/d/db/1zru6gbzte88qn58exi48zpo3s9tr86.png",
+        "1251" : "https://patchwiki.biligame.com/images/pvzrh/3/3f/1jjmmt0pov68jwb6mdnq938a2u7macg.png",
+        "1252" : "https://patchwiki.biligame.com/images/pvzrh/c/c3/mcki4jsys5aqhc45di29ludvg4boqo4.png",
+        "1253" : "https://patchwiki.biligame.com/images/pvzrh/f/fa/59avt7lf0g99knla0phtwgnzexa8wtb.png",
+        "1254" : "https://patchwiki.biligame.com/images/pvzrh/9/98/3rqt4tv3h9b9aenqgamfg9y9ysrk2dy.png",
+        "1255" : "https://patchwiki.biligame.com/images/pvzrh/7/71/nfnoieafynvj5j2dqpbi1rfns3p5m7g.png",
+        "1256" : "https://patchwiki.biligame.com/images/pvzrh/7/7f/be05kv351uz7ip4jwic3xr0dkgwbu5i.png",
+        "1257" : "https://patchwiki.biligame.com/images/pvzrh/2/2b/celfw3yq85r5a0jcz5a8jxxnseyq8y7.png",
+        "1258" : "https://patchwiki.biligame.com/images/pvzrh/4/47/2ow22gakb0sfpng4xr5ed9b0ft6l6eo.png",
+        "1259" : "https://patchwiki.biligame.com/images/pvzrh/d/d8/ahriq851mgl1tiy3cwj3knzioa8id94.png",
+        "1260" : "https://patchwiki.biligame.com/images/pvzrh/7/71/pistirphukqq6fffphe893fxo9nfs33.png",
+        "1261" : "https://patchwiki.biligame.com/images/pvzrh/7/71/kllbf2o7eidjgscosxhgj3r4seo6sou.png",
+        "1262" : "https://patchwiki.biligame.com/images/pvzrh/c/cc/2ummnras7n2xx84ao4gczfgcmy2k0ng.png",
+        "1263" : "https://patchwiki.biligame.com/images/pvzrh/1/1f/9x3x3kv0jrqdj6aa5kndu88tt7p4kqf.png",
+        "1264" : "https://patchwiki.biligame.com/images/pvzrh/0/09/hjruj7m5vdfe43dnc36omjdpnnailaz.png",
+        "1265" : "https://patchwiki.biligame.com/images/pvzrh/9/9b/arbcygetukbgl7xca8tcd5lbs5q93nk.png",
+        "1266" : "https://patchwiki.biligame.com/images/pvzrh/c/c9/hnkha6ouhvtn0jxqvb3fl4frz90qpbi.png",
+        "1267" : "https://patchwiki.biligame.com/images/pvzrh/b/b2/m4p6ltdxwmtkuo5jlo1fczdp0b2sigo.png",
+        "1268" : "https://patchwiki.biligame.com/images/pvzrh/3/36/g4xe7u8z9hgf3wgjl0xrratjdsl2lw6.png",
+        "1269" : "https://patchwiki.biligame.com/images/pvzrh/b/b8/5maxsb51xh37o3o4cd6nzbnj5yjmc1n.png",
+        "1270" : "https://patchwiki.biligame.com/images/pvzrh/8/81/553ic69p77qtlkdvj1oqdfalo7v7vbx.png",
+        "1271" : "https://patchwiki.biligame.com/images/pvzrh/5/5e/gjrlrz53z7fp6z8o3zeynzl274v847h.png",
+        "1272" : "https://patchwiki.biligame.com/images/pvzrh/1/13/irmvnquxtomkowxqdit26kkyds7atb9.png",
+        "1273" : "https://patchwiki.biligame.com/images/pvzrh/2/2c/h5arxw02zcrtxets82ula65oh6g2k7f.png",
+        "1274" : "https://patchwiki.biligame.com/images/pvzrh/a/ac/3g9bc45vuzzabuwzgh279g7z6dsssb8.png",
+        "1275" : "https://patchwiki.biligame.com/images/pvzrh/2/24/fjqjadgliv0xcf8axy78du5fnasbxq0.png",
+        "1276" : "https://patchwiki.biligame.com/images/pvzrh/e/e0/pxod0h5sozy2fioc36rploqzuttlokn.png",
+        "1277" : "https://patchwiki.biligame.com/images/pvzrh/a/a3/nfzahqc4iqziyyqocjlix30no89bkeo.png",
+        "1278" : "https://patchwiki.biligame.com/images/pvzrh/7/77/1iplqcyk3hpwoeezy0j9xmwpbcugw2u.png",
+        "1279" : "https://patchwiki.biligame.com/images/pvzrh/8/8c/p7cg8x1m5emrlwfllo5c1bjf5d6c8pm.png",
+        "1280" : "https://patchwiki.biligame.com/images/pvzrh/6/6a/cah6ppalkgbidjqyvf7c22l6wktj686.png",
+        "1281" : "https://patchwiki.biligame.com/images/pvzrh/d/db/fds6ltjt84adohuy4gml6wwsu7r8xim.png",
+        "1282" : "https://patchwiki.biligame.com/images/pvzrh/a/a8/bd4rf3026lqvr6ecp6i51f8riou7nzf.png",
+        "1283" : "https://patchwiki.biligame.com/images/pvzrh/6/66/kxc222z0tr1tizi7721p9pa2uchv6bw.png",
+        "1284" : "https://patchwiki.biligame.com/images/pvzrh/4/40/13ro5e7uvivcqsxxse0gypfhstx70n8.png",
+        "1285" : "https://patchwiki.biligame.com/images/pvzrh/1/1f/68dcwgcr7xzbjutvihgs0si4ryojyq2.png",
+        "1286" : "https://patchwiki.biligame.com/images/pvzrh/9/96/1qfhmmwfv8x8j9rgdgttmp8gix5mn3o.png",
+        "1287" : "https://patchwiki.biligame.com/images/pvzrh/c/cb/k5yvbxcg4uh49fb9xrirly4e4wfcwda.png",
+        "1288" : "https://patchwiki.biligame.com/images/pvzrh/a/ac/sskl95k5haec9pqn2etota47rqdjjke.png",
+        "1289" : "https://patchwiki.biligame.com/images/pvzrh/f/f8/o9rry4sfkhkqsf4sf6o039fa9fdgair.png",
+        "1290" : "https://patchwiki.biligame.com/images/pvzrh/c/c1/sn8r0x0tubytmlaz555ntukn1q1j7vg.png",
+        "1291" : "https://patchwiki.biligame.com/images/pvzrh/7/72/ih4o7n4evqcmza2m1pkxvvtxh3gsftw.png",
+        "1292" : "https://patchwiki.biligame.com/images/pvzrh/1/12/ctoqwyc90cc39r4pj7n0ecn7xc54s0m.png",
+        "1293" : "https://patchwiki.biligame.com/images/pvzrh/2/27/er6ig1siicynxq9yzui1j9en12x0kkz.png",
+        "1294" : "https://patchwiki.biligame.com/images/pvzrh/c/c8/b96gmhwbrowf4hpzzbici2bqwn5jt0m.png",
+        "1295" : "https://patchwiki.biligame.com/images/pvzrh/5/5e/629eatulownm9mqizrtkpqxhx3kze72.png",
+        "1296" : "https://patchwiki.biligame.com/images/pvzrh/8/80/qescckxgqu4rl4og1anuw9zsiwz63x5.png",
+        "1297" : "https://patchwiki.biligame.com/images/pvzrh/a/ab/ddflrawd4ws5tr4bsctye65yjq0ociu.png",
+        "1298" : "https://patchwiki.biligame.com/images/pvzrh/7/77/7g74b1694zzshbm9db39wntuzuiw4rb.png",
+        "1299" : "https://patchwiki.biligame.com/images/pvzrh/d/d7/0rpk222tfjmg8k4im700075rzz2rql1.png",
+        "1300" : "https://patchwiki.biligame.com/images/pvzrh/c/ce/cab53cd66ny1sy6t13raez9azmpekw9.png",
+        "1301" : "https://patchwiki.biligame.com/images/pvzrh/1/15/pzuwmr38g4qay3rej5vhwxubi8bjxqo.png",
+        "1302" : "https://patchwiki.biligame.com/images/pvzrh/2/21/8sdytijoy6cs4pezuq2ojohtfgpcem0.png",
+        "1303" : "https://patchwiki.biligame.com/images/pvzrh/a/a5/hvc1vy4bjb4toyzhatjr8dfkzpatbwd.png",
+        "1304" : "https://patchwiki.biligame.com/images/pvzrh/9/96/slcsj5rvvkosdne8y7ocp8uo4l09ea6.png",
+        "1305" : "https://patchwiki.biligame.com/images/pvzrh/0/00/75uujim9dy2vonxnyujqwnoypyfrxet.png",
+        "1306" : "https://patchwiki.biligame.com/images/pvzrh/e/e4/ffy45btrt2e6yv5nwqn1i2t6qlbtaux.png",
+        "1307" : "https://patchwiki.biligame.com/images/pvzrh/7/74/h98rvlmpixn5o86nb71y4lr2uykqtte.png",
+        "1308" : "https://patchwiki.biligame.com/images/pvzrh/3/39/otq5ixsm10u5bz73ecccj6d1xmue7b6.png",
+        "1309" : "https://patchwiki.biligame.com/images/pvzrh/2/24/dsaptd2ovob1rphjv7y6hpt2mkg605a.png",
+        "1310" : "https://patchwiki.biligame.com/images/pvzrh/a/a0/2s9f5ognvhm18i5qkxczcvjkun66z9w.png",
+        "1311" : "https://patchwiki.biligame.com/images/pvzrh/c/c6/ghxvzwamh5wet5950vcz3hq6rfnjz18.png",
+        "1312" : "https://patchwiki.biligame.com/images/pvzrh/b/b6/a6auplx0hma71umpoigf0exzuout5k0.png",
+        "1313" : "https://patchwiki.biligame.com/images/pvzrh/4/44/ku4qy66ukxglf2pd7m5ihn9wct5o73s.png",
+        "1314" : "https://patchwiki.biligame.com/images/pvzrh/3/34/ldwtt57whtamh4gbj75ohug1vcdytt9.png",
+        "1315" : "https://patchwiki.biligame.com/images/pvzrh/8/86/lazqsmvb7mvj41kwo16hs28s4xu5tjk.png",
+        "1316" : "https://patchwiki.biligame.com/images/pvzrh/f/ff/kvh32tsoijaycb00ro5mhx90n48gfkf.png",
+        "1317" : "https://patchwiki.biligame.com/images/pvzrh/2/2a/ezmtklng4rz8jh7q5pny2fh54hvc5m8.png",
+        "1318" : "https://patchwiki.biligame.com/images/pvzrh/b/b9/ce7gyfq71p49m7ntugqvx8okilcok2f.png",
+        "1319" : "https://patchwiki.biligame.com/images/pvzrh/c/cd/k8zfttiawt0ar7c31qm7zzxiup6iclc.png",
+        "1320" : "https://patchwiki.biligame.com/images/pvzrh/f/f1/juzl18zdy5aocuxd9weptbg7jbr4d1s.png",
+        "1321" : "https://patchwiki.biligame.com/images/pvzrh/2/20/n6s4wvigvqtzyyirskxiedkvdoemase.png",
+        "1322" : "https://patchwiki.biligame.com/images/pvzrh/3/3c/k2nxvj88knadq42u61c5idbab5t8vgg.png",
+        "1323" : "https://patchwiki.biligame.com/images/pvzrh/4/49/2fxckjyp2k0vkgih0awcz7ynio0bqk7.png",
+        "1324" : "https://patchwiki.biligame.com/images/pvzrh/1/19/axxdzm738ysat8jt6m1crbmzpomyl4a.png",
+        "1325" : "https://patchwiki.biligame.com/images/pvzrh/0/0d/k1zndjvbz5g6dbic4usyucb0exitjzw.png",
+        "1326" : "https://patchwiki.biligame.com/images/pvzrh/4/44/a83za9ikrlix69ztr3yzfaqlrnu535n.png",
+        "1327" : "https://patchwiki.biligame.com/images/pvzrh/a/a4/qj2l4u72z1043gr2gd94mhj3ru0jvf1.png",
+        "1328" : "https://patchwiki.biligame.com/images/pvzrh/f/fc/jqm4cx3a3ituzsiscgq96yc9pq2pouw.png",
+        "1329" : "https://patchwiki.biligame.com/images/pvzrh/5/56/3bexu5utav2qtdekrx1qpq7enkoisjb.png",
+        "1330" : "https://patchwiki.biligame.com/images/pvzrh/e/e1/tq2r1zn0soqrwdf9fzsfw6iallusdxa.png",
+        "1331" : "https://patchwiki.biligame.com/images/pvzrh/9/9a/2scxwz35xjuxow2vdv5pkxaghyyrrua.png",
+        "1332" : "https://patchwiki.biligame.com/images/pvzrh/a/a5/18we53017c30uru2v6kj746jwu9bdym.png",
+        "1333" : "https://patchwiki.biligame.com/images/pvzrh/2/2d/2d5kpmxg2muypvnx4ut6gyf823c7qwb.png",
+        "1334" : "https://patchwiki.biligame.com/images/pvzrh/1/12/a849ynjgwk3k4hf5nfpdol4uwyy7401.png",
+        "1335" : "https://patchwiki.biligame.com/images/pvzrh/a/ab/m2i3to9sfy5xnfs3gwfyk2pwffa6vkt.png",
+        "1336" : "https://patchwiki.biligame.com/images/pvzrh/f/fb/1chy93j9raxl797r8xucu332d821jx7.png",
+        "1337" : "https://patchwiki.biligame.com/images/pvzrh/b/be/p6xhzhgmump1hpfxykgpnjloo5wojyv.png",
+        "1338" : "https://patchwiki.biligame.com/images/pvzrh/f/fa/px9xw8gt7jgjo9whdsqfz6p2j15a7ws.png",
+        "1339" : "https://patchwiki.biligame.com/images/pvzrh/f/f9/pix8eu0om7bp1zvhx6ouxthvkopz9xu.png",
+        "1340" : "https://patchwiki.biligame.com/images/pvzrh/2/22/r6uv62rantnrzx2io4s1fdp73y2wuz6.png",
+        "1341" : "https://patchwiki.biligame.com/images/pvzrh/9/9a/ohrjuvpzum7m9ijqupjtpsy4bf1khsc.png",
+        "1342" : "https://patchwiki.biligame.com/images/pvzrh/f/f6/tm9mq8u889wxuzz68lu9uv1yfpnjun6.png",
+        "1343" : "https://patchwiki.biligame.com/images/pvzrh/e/e4/clyxdy99blbnpzmj7w3awbilmkddlbs.png",
+        "1344" : "https://patchwiki.biligame.com/images/pvzrh/8/8c/3qqn3dm47im8uvjim1xzwkyhtrs0zmn.png",
+        "1345" : "https://patchwiki.biligame.com/images/pvzrh/e/ec/cq4hakvpwxxuypmvyu0ddvk6rp6f322.png",
+        "1346" : "https://patchwiki.biligame.com/images/pvzrh/8/88/6i7f1pq0p46p34gym2g1p1b4k7dv4w0.png",
+        "1347" : "https://patchwiki.biligame.com/images/pvzrh/4/43/1u21eomxmb2fd3cs8rwgapmjj3plmum.png",
+        "1348" : "https://patchwiki.biligame.com/images/pvzrh/9/91/hnyjytk8gfyjuao1dhfbx2cz5fwbky7.png",
+        "1349" : "https://patchwiki.biligame.com/images/pvzrh/9/95/dp7aakcur6ptd0nrdy6rzmkc9tq17ik.png",
+        "1350" : "https://patchwiki.biligame.com/images/pvzrh/1/19/oxw83fvgioulo73x6kgo8a0zl9ct6i8.png",
+        "1351" : "https://patchwiki.biligame.com/images/pvzrh/f/fc/nfz29h54pokf0n2hjbjtqadgoqik0dv.png",
+        "1352" : "https://patchwiki.biligame.com/images/pvzrh/3/39/gqq82kfqf56akaedvff2njmtob8wmbg.png",
+        "1353" : "https://patchwiki.biligame.com/images/pvzrh/6/61/kkoz20k5of8jb3lpat5d4ojfhi6b4xz.png",
+        "1354" : "https://patchwiki.biligame.com/images/pvzrh/a/ae/8c2q620zivh9of1xui0z5mfsr97faj4.png",
+        "1355" : "https://patchwiki.biligame.com/images/pvzrh/7/70/95kd2dkewi2lpl3uthpn8z17boaa6kz.png",
+        "1356" : "https://patchwiki.biligame.com/images/pvzrh/e/e8/gda28neu28u8zdr0pwonzd6utvlzuai.png",
+        "1357" : "https://patchwiki.biligame.com/images/pvzrh/e/e9/5j7vdi4ppgaz01gaiwv6p0669pfsqwi.png",
+        "1358" : "https://patchwiki.biligame.com/images/pvzrh/6/65/kgqdgwkzf0daezutw8fskwcoa75snja.png",
+        "1359" : "https://patchwiki.biligame.com/images/pvzrh/1/19/ngivzm1w8z1nxbkzd233ngxa1hpy2tu.png",
+        "1360" : "https://patchwiki.biligame.com/images/pvzrh/5/55/hyysk7ox59ttmqgtej49ttwc1yrbvt2.png",
+        "1361" : "https://patchwiki.biligame.com/images/pvzrh/a/a6/dykjd5w151mr33gopvpa8ykynjsws94.png",
+        "1362" : "https://patchwiki.biligame.com/images/pvzrh/f/f9/oc8xukwdjn8wi6tpjru5j2tu507sv92.png",
+        "1363" : "https://patchwiki.biligame.com/images/pvzrh/c/c0/azo1csmjc6qinetuap9ayinddhwuf14.png",
+        "1364" : "https://patchwiki.biligame.com/images/pvzrh/6/62/hjlhcqwalanibl7vufzv01hrwuc2gkq.png",
+        "1365" : "https://patchwiki.biligame.com/images/pvzrh/b/b6/0a8hagmp5za5z4l495j96gj9q9v406w.png",
+        "1366" : "https://patchwiki.biligame.com/images/pvzrh/1/1d/jhnlzkudlul9hs4zgy6ykz6ivhy4eid.png",
+        "1367" : "https://patchwiki.biligame.com/images/pvzrh/7/7f/1c2a7sk0ufsr3w70nyoe6f3yt8n3e6z.png",
+        "1368" : "https://patchwiki.biligame.com/images/pvzrh/f/f1/3xukpdsl9vtela124rdjwau9bplb49j.png",
+        "1369" : "https://patchwiki.biligame.com/images/pvzrh/3/38/jnc9phgu4q86bfmozdayew7j7i2jdmz.png",
+        "1370" : "https://patchwiki.biligame.com/images/pvzrh/1/1f/phtw7sjuxs47782yqo0qasbhepqyy14.png",
+        "1371" : "https://patchwiki.biligame.com/images/pvzrh/9/91/tb3au0x53rcgmvjmftmgszyt5oxscvl.png",
+        "1372" : "https://patchwiki.biligame.com/images/pvzrh/b/b6/pbkzoxfalegfss1erixeaukintil13z.png",
+        "1373" : "https://patchwiki.biligame.com/images/pvzrh/b/b1/3njtyuhvl7c8kowyfypo8jtswamngs1.png",
+        "1374" : "https://patchwiki.biligame.com/images/pvzrh/f/fc/rhafbsu6s5hltcjnrlmiga2srdmloyh.png",
+        "1375" : "https://patchwiki.biligame.com/images/pvzrh/5/51/l0cf9vkydzzkj7yooxns3hi79ewtsrl.png",
+        "1376" : "https://patchwiki.biligame.com/images/pvzrh/6/65/7zgki1bykpwxa0viel0kb26caah5bgl.png",
+        "1377" : "https://patchwiki.biligame.com/images/pvzrh/d/d3/3ck9pvucdmixvfreohhc29nt6tfdiip.png",
+        "1378" : "https://patchwiki.biligame.com/images/pvzrh/6/6b/ngn076hoay57r6lynoekl2eplmw072h.png",
+        "1379" : "https://patchwiki.biligame.com/images/pvzrh/9/9e/t9pm7ng0a9eo9fvch1qufu73jrjqbnz.png",
+        "1380" : "https://patchwiki.biligame.com/images/pvzrh/2/2a/nu746347wrj9zqdx3ws1mq928akvayl.png",
+        "1381" : "https://patchwiki.biligame.com/images/pvzrh/0/07/1w4ipgdjwei064cf229h1ilyl3t89t3.png",
+        "1382" : "https://patchwiki.biligame.com/images/pvzrh/b/b1/bbw82gi5ao049gbmkne3e5svyxsw70x.png",
+        "1383" : "https://patchwiki.biligame.com/images/pvzrh/9/9d/pv52c7baa65osu7c4zd2bfcdcm1lx2l.png",
+        "1384" : "https://patchwiki.biligame.com/images/pvzrh/b/bf/h5wmwzt51y68pa5llc3sfp5ly8hyugk.png",
+        "1385" : "https://patchwiki.biligame.com/images/pvzrh/a/a2/3c2xzz2i9nsqes841xhh0jb0dl3wdjk.png",
+        "1386" : "https://patchwiki.biligame.com/images/pvzrh/3/32/g8ghpabq363t0etez4773r4j415us51.png",
+        "1387" : "https://patchwiki.biligame.com/images/pvzrh/7/7f/mq8s0l8r6nbmmfigzrdyycli9d7l0rd.png",
+        "1388" : "https://patchwiki.biligame.com/images/pvzrh/7/7a/s07t2qpvqq0g68eoxapwrt2mkj05r34.png",
+        "1389" : "https://patchwiki.biligame.com/images/pvzrh/1/13/kpqej2yji18zwugpcxw573e9umsgjgb.png",
+        "1390" : "https://patchwiki.biligame.com/images/pvzrh/6/60/de5t5t9ru1y62t74fwmmcznpjvh364w.png",
+        "1391" : "https://patchwiki.biligame.com/images/pvzrh/5/5f/62nlsqgdlrhrv04yiuqju5nu6f8xapa.png",
+        "1392" : "https://patchwiki.biligame.com/images/pvzrh/0/0c/6kepqw4ocu5suyqyqolo5uivaln0ex0.png",
+        "1393" : "https://patchwiki.biligame.com/images/pvzrh/0/08/80b0ao7q61xem2m7i8elm985osrr4ag.png",
+        "1394" : "https://patchwiki.biligame.com/images/pvzrh/a/a5/fwk20hlunl0c4042vcx77unvsuyn25r.png",
+        "1395" : "https://patchwiki.biligame.com/images/pvzrh/1/14/3xyigx5jdcm7hgen8diobjtyh33b18a.png",
+        "1396" : "https://patchwiki.biligame.com/images/pvzrh/6/68/0iha0649uded02zy1gme2zksw6f23j3.png",
+        "1397" : "https://patchwiki.biligame.com/images/pvzrh/4/4b/lh1guoo9a8phhu86ytvmnrcrpebio9u.png",
+        "1398" : "https://patchwiki.biligame.com/images/pvzrh/a/ad/7opb817emkqgfknmwxvftw1gistxf3c.png",
+        "1399" : "https://patchwiki.biligame.com/images/pvzrh/d/d0/maalwqixqq3lckhh1qgg28zx12s2ood.png",
+        "1400" : "https://patchwiki.biligame.com/images/pvzrh/6/66/c910o9r7ph7htwllyjd1rdu0jt55a0l.png",
+        "1401" : "https://patchwiki.biligame.com/images/pvzrh/d/de/dr6ujct5vvfe5bykj9osk4mqvx3pkmf.png",
+        "1402" : "https://patchwiki.biligame.com/images/pvzrh/7/76/qn2im1afpdrrms5bh6icsf8fnp3l61v.png",
+        "1403" : "https://patchwiki.biligame.com/images/pvzrh/c/cb/pq7hc2txb69oj1uzdz2itkqk99xrv21.png",
+        "1404" : "https://patchwiki.biligame.com/images/pvzrh/f/f6/pri2p245hhhvhk7ovfju3wmrok9c7k8.png",
+        "1405" : "https://patchwiki.biligame.com/images/pvzrh/a/aa/3r2n78ef44i7zfzzgfhn6bth54diu8l.png",
+        "1406" : "https://patchwiki.biligame.com/images/pvzrh/c/ce/7o6o20rrcmi5k1ou7lr5fwex9zc182e.png",
+        "1407" : "https://patchwiki.biligame.com/images/pvzrh/a/a9/8b2nrs6moitaq0dsddn7cigm5zuj1ee.png",
+        "1408" : "https://patchwiki.biligame.com/images/pvzrh/d/d9/be7hb0hdyvpih8nh1ydzl4cxotc3ehj.png",
+        "1409" : "https://patchwiki.biligame.com/images/pvzrh/1/17/df5rrr4bla8fyfu6eqirtvntk4wrxt6.png",
+        "1410" : "https://patchwiki.biligame.com/images/pvzrh/7/70/6j98odfjev5a6a14cfx795yc339nlb1.png",
+        "1411" : "https://patchwiki.biligame.com/images/pvzrh/3/3d/edjarhk1u0dxnuxjz0cnwvb3adk0ot6.png",
+        "1412" : "https://patchwiki.biligame.com/images/pvzrh/3/31/j6x0x18h6luznuvmulx282dzgcl5s5l.png",
+        "1413" : "https://patchwiki.biligame.com/images/pvzrh/0/0c/g4b42blmev0hr6p9h0cymcfdg3gq2si.png",
+        "1414" : "https://patchwiki.biligame.com/images/pvzrh/3/33/a8wlb20oh4ysrhfkm8pl7evs7ef80a6.png",
+        "1415" : "https://patchwiki.biligame.com/images/pvzrh/5/51/2vpp0wjoo09aqtvpm18b7m35qsnp2nk.png",
+        "1416" : "https://patchwiki.biligame.com/images/pvzrh/d/d5/dr2h8v7x21kqremxdbmbpml5r0rgstm.png",
+        "1417" : "https://patchwiki.biligame.com/images/pvzrh/2/2d/cggic02m9nx63ycr1oym7coepkq3dvp.png",
+        "1418" : "https://patchwiki.biligame.com/images/pvzrh/b/b3/5e33fgvbuk1dpkidey0e091hgxu4x6f.png",
+        "1419" : "https://patchwiki.biligame.com/images/pvzrh/8/8e/hrw7ideey3jjvz4yzzolxxjk5zk2zho.png",
+        "1420" : "https://patchwiki.biligame.com/images/pvzrh/b/bc/ckb8mu3dxcaexyoj1pybcsh2jlxu6rq.png",
+        "1421" : "https://patchwiki.biligame.com/images/pvzrh/1/13/4me631si8u3c0gqerqfjdz8q6bclyva.png",
+        "1422" : "https://patchwiki.biligame.com/images/pvzrh/b/b7/q4r8ki7jgcjlxcoswxqtr9djxaa8qks.png",
+        "1423" : "https://patchwiki.biligame.com/images/pvzrh/f/f2/oa9bophcsl9hdxb7emrd1md3d3iy3ow.png",
+        "1424" : "https://patchwiki.biligame.com/images/pvzrh/c/ca/pfpkgekguap3btw6nbhuq5di2t655o8.png",
+        "1425" : "https://patchwiki.biligame.com/images/pvzrh/9/96/3bt2b7t51v885p23rzjq803y8hinell.png",
+        "1426" : "https://patchwiki.biligame.com/images/pvzrh/b/bc/mgbt1fnbbykjbnir4k6diw1dvdnizjx.png",
+        "1427" : "https://patchwiki.biligame.com/images/pvzrh/4/4b/pjst3fi7v904lj1tde4lig13qmccbyc.png",
+        "1428" : "https://patchwiki.biligame.com/images/pvzrh/b/b5/9sdtp8c5j2frfxj5jnzxqe0jf73s7mn.png",
+        "1429" : "https://patchwiki.biligame.com/images/pvzrh/0/08/foco7mtkes7hxpgkpliq8r57c0kf44y.png",
+        "1430" : "https://patchwiki.biligame.com/images/pvzrh/6/66/o8x5mj018sgf5hn4zvvaiiqlgkntdgi.png",
+        "1431" : "https://patchwiki.biligame.com/images/pvzrh/2/2e/5kq32bstwgavp1xxx2i50bgmx4648bz.png",
+        "1432" : "https://patchwiki.biligame.com/images/pvzrh/0/0b/aeccqjo259bt93tb4280nvjvala9td7.png",
+        "1433" : "https://patchwiki.biligame.com/images/pvzrh/f/f0/de6g0aqyl1lyi0zb5pp1zdg62ki4x1e.png",
+        "1434" : "https://patchwiki.biligame.com/images/pvzrh/2/2b/hz9jldllrnouy1f1q9wvvpvmpflb2ut.png",
+        "1435" : "https://patchwiki.biligame.com/images/pvzrh/5/58/l4r1zkh9ryqxfjfzroy5brguqnguqjw.png",
+        "1436" : "https://patchwiki.biligame.com/images/pvzrh/e/e6/ax2b7kn2bzyyfchd4jr12f70vtea7rt.png",
+        "1437" : "https://patchwiki.biligame.com/images/pvzrh/8/83/tokjnbtc7krj1na7zu7qhbscjow5jul.png",
+        "1438" : "https://patchwiki.biligame.com/images/pvzrh/9/90/ivt2rhb0p69ugskfz51o20jev0ouwx5.png",
+        "1439" : "https://patchwiki.biligame.com/images/pvzrh/8/87/r1dxtumlst6olw47teo959pvuazkd6g.png",
+        "1440" : "https://patchwiki.biligame.com/images/pvzrh/0/02/6uv7smrepyfnl4wmqsewwr7ewrvtm1p.png",
+        "1441" : "https://patchwiki.biligame.com/images/pvzrh/f/f5/a5zeo6j64aiu5bu7z02pjcojqm01j07.png",
+        "1442" : "https://patchwiki.biligame.com/images/pvzrh/a/a9/4nbpifmqi7lm4745zvzlyipvc45hcx5.png",
+        "1443" : "https://patchwiki.biligame.com/images/pvzrh/6/66/njxzdtbdili96jlkwryh6gbmbbrxk9a.png",
+        "1444" : "https://patchwiki.biligame.com/images/pvzrh/7/7f/0rh3ew0thn249u20gr8cv377iep6d3i.png",
+        "1445" : "https://patchwiki.biligame.com/images/pvzrh/c/c6/knc3xs6g8d6866b7dz7sgiskew8x8bj.png",
+        "1446" : "https://patchwiki.biligame.com/images/pvzrh/c/ce/hqfphpy69jiher4g52ivvq8kmkk7dq6.png",
+        "1447" : "https://patchwiki.biligame.com/images/pvzrh/0/06/fge4j4db75yl09f01qgfzuv60yjujf8.png",
+        "1448" : "https://patchwiki.biligame.com/images/pvzrh/7/73/4myhxlndi02k47iotfiqyu2yrdrnaul.png",
+        "1449" : "https://patchwiki.biligame.com/images/pvzrh/4/4f/9jcqjs8c987lwb9c7lq2jft4dlu0beb.png",
+        "1450" : "https://patchwiki.biligame.com/images/pvzrh/d/dd/09f7bw0n4hz8tll7eyagf3k192l5yq9.png",
+        "1451" : "https://patchwiki.biligame.com/images/pvzrh/8/87/cnlgmhb5zaha39ps575ovqrlferjhi3.png",
+        "1452" : "https://patchwiki.biligame.com/images/pvzrh/d/d7/8rn44i7p4kwmlidd27hopsbq0dfrbmu.png",
+        "1453" : "https://patchwiki.biligame.com/images/pvzrh/c/cc/521svxyxwizu92schfutohoda4x9yyo.png",
+        "1454" : "https://patchwiki.biligame.com/images/pvzrh/7/77/6mb75slhbs5ftdt8pqr1ql3jcwezt1e.png",
+        "1455" : "https://patchwiki.biligame.com/images/pvzrh/6/67/h5xkhanxeg3yq89noq7zpkkau9878am.png",
+        "1456" : "https://patchwiki.biligame.com/images/pvzrh/c/c6/07t60nikv8tfnc6t03ggmn73ej2p3nz.png",
+        "1457" : "https://patchwiki.biligame.com/images/pvzrh/5/52/3l2eggwa9kag1ip66o629chcyqurjlf.png",
+        "1458" : "https://patchwiki.biligame.com/images/pvzrh/c/cc/o1afmgox87ci69bd4whjvokdc3zczxd.png",
+        "1459" : "https://patchwiki.biligame.com/images/pvzrh/4/41/6d3xfmdh1lza0fjey93231wdk8en12n.png",
+        "1460" : "https://patchwiki.biligame.com/images/pvzrh/c/ca/0b30cqa7yyi4wqvi2re2fr42v3bd8hq.png",
+        "1461" : "https://patchwiki.biligame.com/images/pvzrh/7/7b/6gotkl7fu2rdt6d3l4c8bjcbtsb6ea8.png",
+        "1462" : "https://patchwiki.biligame.com/images/pvzrh/d/d8/putgsnmpgmd2e7dh0mm7owbu8c8veef.png",
+        "1463" : "https://patchwiki.biligame.com/images/pvzrh/a/a8/12n680v1um8d5k1t9bz876wfk9sz4j6.png",
+        "1464" : "https://patchwiki.biligame.com/images/pvzrh/0/05/o17md3nddjqg7189vp20fcp31ad1gjh.png",
+        "1465" : "https://patchwiki.biligame.com/images/pvzrh/2/2b/mrl1hddjkc92wayyb7pff81q9av9785.png",
+        "1466" : "https://patchwiki.biligame.com/images/pvzrh/0/0a/lfj9da3xxrn33mq1l2ae667dwoevc8q.png",
+        "1467" : "https://patchwiki.biligame.com/images/pvzrh/3/3c/eljo2wtbxwysfrpq2ng5yxcmshvs89l.png",
+        "1468" : "https://patchwiki.biligame.com/images/pvzrh/5/5f/bgorbk7hef10u71dj6lk765m64ac7kw.png",
+        "1469" : "https://patchwiki.biligame.com/images/pvzrh/e/e6/cg023voflmrkhes9sxft8i7kuiqarc4.png",
+        "1470" : "https://patchwiki.biligame.com/images/pvzrh/9/9b/fvqh7rb9hncanrnw63rzcdu81om9342.png",
+        "1471" : "https://patchwiki.biligame.com/images/pvzrh/e/ec/5rafqxhtfw742nawk0cy2kwuymu8nhv.png",
+        "1472" : "https://patchwiki.biligame.com/images/pvzrh/c/cc/b906dgmqsexw2najs01ecyrjgbfq104.png",
+        "1473" : "https://patchwiki.biligame.com/images/pvzrh/6/68/gegsok2esekv5wsd940xduh2ed7u0o0.png",
+        "1474" : "https://patchwiki.biligame.com/images/pvzrh/7/7b/1nantl467k9n5xr4fjs6dh114mu7q7b.png",
+        "1475" : "https://patchwiki.biligame.com/images/pvzrh/a/a2/ej1zexdevph5rulma84dpgurv6nbf9t.png",
+        "1476" : "https://patchwiki.biligame.com/images/pvzrh/b/bb/ip1xeorvhpgtrl7rfdimeu0yfgfo1rn.png",
+        "1477" : "https://patchwiki.biligame.com/images/pvzrh/9/9a/ahh1k58b4xa3pxokdxdbqq2fsdx3saw.png",
+        "1478" : "https://patchwiki.biligame.com/images/pvzrh/0/0a/c44l4ytdumwlzpnhs0oqcz3tqkoe5k8.png",
+        "1479" : "https://patchwiki.biligame.com/images/pvzrh/b/b1/3vdtrnj9ejmfy17zw49w7cnlxtgqxki.png",
+        "1480" : "https://patchwiki.biligame.com/images/pvzrh/5/53/8ob5p697ez41ctlfki04njrovoyho84.png",
+        "1481" : "https://patchwiki.biligame.com/images/pvzrh/f/f4/2s7eh0opt32r5c8lmu3j3n3ji1e2kyu.png",
+        "1482" : "https://patchwiki.biligame.com/images/pvzrh/8/87/ftkqwylz36rqqj6s03o7v29txakdcyt.png",
+        "1483" : "https://patchwiki.biligame.com/images/pvzrh/1/14/ex4mo0rdoq688sxdi4ugxtv675m4s4y.png",
+        "3500" : "https://patchwiki.biligame.com/images/pvzrh/2/27/4o3l20qb1q8yqntk6yvy14nzzdd86md.png",
+        "3501" : "https://patchwiki.biligame.com/images/pvzrh/5/5a/klrr7dolq35ogz1bwmmwmpha6gu7xrk.png",
+        "3502" : "https://patchwiki.biligame.com/images/pvzrh/b/b6/leznjrwu4edfu5ikhsxh9bwkkarnk33.png",
+        "4000" : "https://patchwiki.biligame.com/images/pvzrh/f/fd/qr1gys0a5w4tmfu3ghh5bxhdh44myrp.png",
+        "4001" : "https://patchwiki.biligame.com/images/pvzrh/3/39/bpqqfnhl7nc2bwrsa2zjsntyu5b2ynj.png",
+        "5000" : "https://patchwiki.biligame.com/images/pvzrh/f/ff/1enxhu8upusgh260ovx1ecbevf2fjf7.png",
+        "5001" : "https://patchwiki.biligame.com/images/pvzrh/c/cd/jm3w6xmp2oa203bha5d29010mo9jaox.png",
+        "5002" : "https://patchwiki.biligame.com/images/pvzrh/a/a9/azhoe5lclnto5jf13v8epwt23bgtdnc.png",
+        "5003" : "https://patchwiki.biligame.com/images/pvzrh/3/38/mnxym493rcvustffi63nmngdsvhd7lf.png",
+        "5004" : "https://patchwiki.biligame.com/images/pvzrh/8/8f/hl7d71lamndtq3c586yg35e8jpj3bif.png",
+        "5005" : "https://patchwiki.biligame.com/images/pvzrh/9/91/is1p72rf5pyr6m4b6o9fl628j43n3ap.png"
+    };
+
+    const hp_640k = ["1151","308"];
+    const hp_96k  = ["913","925"];
+    const hp_64k  = ["310","977","997"];
+    const hp_32k  = ["234","903","921"];
+    const hp_16k  = ["911","922","5002","931","945","1028"];
+    const hp_8k   = ["1423","309","906","927","935","946","951","960","980","990","1299","1027","1039","1073","1097","1029","1285"];
+    const hp_6k   = ["942","961","1284"];
+    const hp_4k   = ["240","307","905","916","923","963","967","968","969","985","3","1004","1006","1003","255","1010","1012","1312","1147","1310","1189","1236","1250","1313","1235","1048","1309","1256","1255","1257","1279","1262","1263","1278","1206","1318","1324","1164","1190","1327","1349","1350","1205","1436","1371","1202","1435","1413","1464","1288","1334","1087","1088","1091","1089","1092","1323","1352","1098","1099","353","367","1013","1129","1215","223","225"];
+    const hp_3k   = ["940","991","1160","1306"];
+    const hp_2k   = ["910","1021","1293","1200","1020","1096","1159","1211","1315","224","1131"];
+    const hp_1k8  = ["1260"];
+    const hp_1k5  = ["39","1264","1258","1259","1402"];
+    const hp_1k   = ["216","242","937","975","30","1453","1455","1185","1128","1115","1127","1143","1144","1152","213","212","214","215","216","1253"];
+    const hp_600  = ["1207"];
+
+    let currentTab = "all";
+    let currentPage = 1;
+    const itemsPerPage = 63;
+    const plantEntries = Object.entries(plantImages);
+
+    function initTabs() {
+        const container = document.getElementById('tabContainer');
+        container.innerHTML = '';
+        Object.keys(plantCategories).forEach(catKey => {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${catKey === currentTab ? 'active' : ''}`;
+            btn.innerText = plantCategories[catKey].name;
+            btn.onclick = () => switchTab(catKey);
+            container.appendChild(btn);
+        });
+    }
+
+    function switchTab(catKey) {
+        currentTab = catKey;
+        currentPage = 1;
+        initTabs();
+        renderSeedBank();
+    }
+
+    function getFilteredPlants() {
+        if (currentTab === "all") return plantEntries;
+        const allowedIds = plantCategories[currentTab].ids || [];
+        return plantEntries.filter(([id]) => allowedIds.includes(id));
+    }
+
+    function renderSeedBank() {
+        const bank = document.getElementById('seedBank');
+        bank.innerHTML = '';
+        const filtered = getFilteredPlants();
+        const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+        
+        const start = (currentPage - 1) * itemsPerPage;
+        const currentItems = filtered.slice(start, start + itemsPerPage);
+        let currentInputVal = document.getElementById('plantId').value.trim();
+
+        currentItems.forEach(([id, imgSrc]) => {
+            const card = document.createElement('div');
+            card.className = 'seed-card' + (currentInputVal === id ? ' selected' : '');
+            card.id = 'seed-' + id;
+            
+            if (imgSrc) {
+                const img = document.createElement('img');
+                img.src = imgSrc;
+                img.onerror = function() { this.style.display='none'; };
+                card.appendChild(img);
+            }
+
+            const idLabel = document.createElement('div');
+            idLabel.className = 'seed-id';
+            idLabel.innerText = id;
+            card.appendChild(idLabel);
+
+            card.onclick = () => selectSeed(id, card);
+            bank.appendChild(card);
+        });
+
+        document.getElementById('pageInfo').innerText = `Trang ${currentPage} / ${totalPages}`;
+        document.getElementById('btnPrev').disabled = currentPage === 1;
+        document.getElementById('btnNext').disabled = currentPage >= totalPages;
+    }
+
+    function prevPage() { if (currentPage > 1) { currentPage--; renderSeedBank(); } }
+    function nextPage() { currentPage++; renderSeedBank(); }
+
+    function handleManualInput() {
+        document.querySelectorAll('.seed-card').forEach(c => c.classList.remove('selected'));
+        const manualId = document.getElementById('plantId').value.trim();
+        const matchingCard = document.getElementById('seed-' + manualId);
+        if(matchingCard) matchingCard.classList.add('selected');
+    }
+
+    function selectSeed(id, cardElement) {
+        document.getElementById('plantId').value = id;
+        document.querySelectorAll('.seed-card').forEach(c => c.classList.remove('selected'));
+        if(cardElement) cardElement.classList.add('selected');
+    }
+
+    function selectEraseMode() {
+        document.getElementById('plantId').value = "-1";
+        document.querySelectorAll('.seed-card').forEach(c => c.classList.remove('selected'));
+    }
+
+    function canPlant(cellArray, inputId) {
+        let hasBase = false, hasArmor = false, hasFlying = false, hasStandard = false;
+        let puffCount = 0;
+
+        cellArray.forEach(id => {
+            if (puffShrooms.includes(id)) puffCount++;
+            else if (basePlants.includes(id)) hasBase = true;
+            else if (armorPlants.includes(id)) hasArmor = true;
+            else if (flyingPlants.includes(id)) hasFlying = true;
+            else hasStandard = true;
+        });
+
+        if (puffShrooms.includes(inputId)) {
+            if (hasStandard) return false;
+            return puffCount < 3;
+        }
+
+        if (basePlants.includes(inputId)) return !hasBase;
+        if (armorPlants.includes(inputId)) return !hasArmor;
+        if (flyingPlants.includes(inputId)) return !hasFlying;
+
+        if (puffCount > 0) return false;
+        return !hasStandard;
+    }
+
+    function applyShovel(cellArray, shovelMode) {
+        if (shovelMode === "all") return [];
+        
+        return cellArray.filter(id => {
+            if (shovelMode === "armor" && armorPlants.includes(id)) return false;
+            if (shovelMode === "base" && basePlants.includes(id)) return false;
+            if (shovelMode === "flying" && flyingPlants.includes(id)) return false;
+            if (shovelMode === "normal") {
+                const isSpecial = armorPlants.includes(id) || basePlants.includes(id) || flyingPlants.includes(id);
+                if (!isSpecial) return false; 
+            }
+            return true;
+        });
+    }
+
+    const gridElement = document.getElementById('grid');
+
+    function initGrid() {
+        gridElement.innerHTML = '';
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.style.zIndex = 100 + (r * 10) - c;
+                gridElements[r][c] = cell;
+
+                updateCellVisual(cell, gridData[r][c]);
+
+                cell.onclick = () => handleCellClick(r, c);
+                gridElement.appendChild(cell);
+            }
+        }
+    }
+
+    function handleCellClick(r, c) {
+        let inputId = document.getElementById('plantId').value.trim();
+        let isColumnMode = document.getElementById('chkColumnMode').checked;
+        let shovelMode = document.getElementById('shovelModeSelect').value;
+
+        let targetRows = isColumnMode ? [0, 1, 2, 3, 4, 5] : [r];
+
+        targetRows.forEach(row => {
+            if (inputId === "-1" || inputId === "") {
+                gridData[row][c] = applyShovel(gridData[row][c], shovelMode);
+            } else {
+                if (canPlant(gridData[row][c], inputId)) {
+                    gridData[row][c].push(inputId);
+                } else {
+                    gridElements[row][c].style.backgroundColor = '#ff4444';
+                    setTimeout(() => { gridElements[row][c].style.backgroundColor = '#2a2a2a'; }, 200);
+                }
+            }
+            updateCellVisual(gridElements[row][c], gridData[row][c]);
+        });
+    }
+
+    function updateCellVisual(cell, plantArray) {
+        cell.innerHTML = ''; 
+        let idTexts = [];
+        
+        if (plantArray && plantArray.length > 0) {
+            plantArray.forEach((idStr, index) => {
+                if (plantImages[idStr] && plantImages[idStr] !== "") {
+                    const img = document.createElement('img');
+                    img.src = plantImages[idStr];
+                    
+                    if (twoCellPlants.includes(idStr)) {
+                        img.className = 'two-cell';
+                    } else if (puffShrooms.includes(idStr)) {
+                        let pIndex = 1;
+                        for (let i = 0; i < index; i++) {
+                            if (puffShrooms.includes(plantArray[i])) pIndex++;
+                        }
+                        img.className = 'puff-' + pIndex;
+                    } else if (basePlants.includes(idStr)) {
+                        img.className = 'base-cell';
+                    } else if (armorPlants.includes(idStr)) {
+                        img.className = 'armor-cell';
+                    } else if (flyingPlants.includes(idStr)) {
+                        img.className = 'flying-cell';
+                    } else {
+                        img.className = 'normal-cell';
+                    }
+
+                    img.onerror = function() { this.style.display = 'none'; };
+                    cell.appendChild(img);
+                }
+                idTexts.push(idStr);
+            });
+
+            const text = document.createElement('div');
+            text.className = 'id-text';
+            text.innerText = idTexts.join(',');
+            cell.appendChild(text);
+        }
+    }
+
+    function clearGrid() {
+        if(confirm("Xoá toàn bộ sân trồng?")) {
+            gridData = Array.from({ length: rows }, () => Array.from({ length: cols }, () => []));
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    updateCellVisual(gridElements[r][c], gridData[r][c]);
+                }
+            }
+            document.getElementById('output').value = "";
+        }
+    }
+
+    function exportData() {
+        let outputStr = "";
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                let cellPlants = gridData[row][col]; 
+                cellPlants.forEach(idStr => {
+                    let health = 300; 
+                    if (hp_640k.includes(idStr)) health = 640000;
+                    else if (hp_96k.includes(idStr)) health = 96000;
+                    else if (hp_64k.includes(idStr)) health = 64000;
+                    else if (hp_32k.includes(idStr)) health = 32000;
+                    else if (hp_16k.includes(idStr)) health = 16000;
+                    else if (hp_8k.includes(idStr)) health = 8000;
+                    else if (hp_6k.includes(idStr)) health = 6000;
+                    else if (hp_4k.includes(idStr)) health = 4000;
+                    else if (hp_3k.includes(idStr)) health = 3000;
+                    else if (hp_2k.includes(idStr)) health = 2000;
+                    else if (hp_1k8.includes(idStr)) health = 1800;
+                    else if (hp_1k5.includes(idStr)) health = 1500;
+                    else if (hp_1k.includes(idStr)) health = 1000;
+                    else if (hp_600.includes(idStr)) health = 600;
+
+                    outputStr += `{\n`;
+                    outputStr += `"thePlantColumn": ${col},\n`;
+                    outputStr += `"thePlantRow": ${row},\n`;
+                    outputStr += `"thePlantType": ${idStr},\n`;
+                    outputStr += `"thePlantHealth": ${health},\n`;
+                    outputStr += `"theLilyType": 0,\n`;
+                    outputStr += `"thePlantStage": 0,\n`;
+                    outputStr += `"theAttributeCount": 0,\n`;
+                    outputStr += `"theLevel": 0,\n`;
+                    outputStr += `"imitatless": false,\n`;
+                    outputStr += `"diemeanlose": false,\n`;
+                    outputStr += `"uncrashable": false,\n`;
+                    outputStr += `"starUp": false,\n`;
+                    outputStr += `"towards": 0,\n`;
+                    outputStr += `"upgradeType": 0,\n`;
+                    outputStr += `"objects": []\n`;
+                    outputStr += `},\n`;
+                });
+            }
+        }
+        document.getElementById('output').value = outputStr;
+    }
+
+    function downloadJson() {
+        let text = document.getElementById('output').value;
+        if (!text) { alert("Tạo đội hình và bấm 'Xuất Code' trước!"); return; }
+        text = text.trim();
+        if (text.endsWith(",")) text = text.slice(0, -1);
+        const finalJson = "[\n" + text + "\n]";
+        const blob = new Blob([finalJson], { type: "application/json" });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = "pvzfusion.json";
+        a.click();
+    }
+
+    initTabs();
+    renderSeedBank();
+    initGrid();
+</script>
+</body>
+</html>
